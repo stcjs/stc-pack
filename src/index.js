@@ -35,7 +35,7 @@ export default class JSPackPlugin extends Plugin {
       // new HarmonyModulesPlugin(options.module),
       // new SystemPlugin(options.module)
     );
-    var module = compiler.compileModule(this.file.path, content);
+    var module = compiler.compileModule(this.file.path, content, this.options);
 
     var serializedModule = Serializer.stringify(module);
     return {serializedModule};

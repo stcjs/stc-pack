@@ -24,13 +24,22 @@ function Compiler() {
 }
 Compiler.prototype = Object.create(Tapable.prototype);
 Compiler.prototype.constructor = Compiler;
-Compiler.prototype.compileModule = function(path, content) {
+Compiler.prototype.compileModule = function(path, content, options) {
   path = Path.normalize(path);
+  var isEntry = false;
+  for(var entry in options.entry) {
+    var entryPath = Path.normalize(options.entry[entry]);
+    if(path === entryPath) {
+      isEntry = true;
+      break;
+    }
+  }
   var module = this.module = {
     dependencies: [],
     blocks: [],
     path,
-    content
+    content,
+    isEntry
   };
   // 利用 webpack 功能得出依赖
   this.parser.parse(content, this);

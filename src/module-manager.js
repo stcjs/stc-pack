@@ -69,6 +69,18 @@ class ModuleManager {
   getChildrenIDs(module) {
     return module.dependencies.filter(d=>d.id !== undefined).map(d=>d.id);
   }
+
+  isModuleDependenciesReady(module) {
+    var ids = this.getChildrenIDs(module);
+    var dep;
+    for(var i in ids) {
+      dep = this.moduleMap[ids[i]];
+      if(!dep || !this.isModuleDependenciesReady(dep)) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 var manager = new ModuleManager();

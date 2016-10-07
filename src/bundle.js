@@ -1,6 +1,7 @@
 import fs from 'fs';
 import Path from 'path';
-
+import templates from './templates';
+import ModuleManager from './module-manager';
 class Bundle {
   constructor(module) {
     this.moduleIDs = [];
@@ -12,11 +13,13 @@ class Bundle {
 
   addModule(module) {
     this.moduleIDs.push(module.id);
-    this._writeContent(this._getModuleCodeBlock(module));
-  }
-
-  _getModuleCodeBlock(module) {
-    return `stcPack.module("${module.path}", function(require) {\n ${module.content} \n})\n\n`
+    var codeBlock;
+    if(module.isEntry) {
+      codeBlock = templates.DI + templates.entry(module.path, module.content);
+    } else {
+      codeBlock = templates.add(module.path, module.content);
+    }
+    this._writeContent(codeBlock);
   }
 
   _getOutputPath() {
@@ -30,11 +33,19 @@ class Bundle {
   }
 
   _writeContent(content) {
-    fs.writeFileSync(this._getOutputPath(), content);
+    fs.writeFileSync(this._getOutputPath(), this._wrap(content));
   }
 
   _appendContent(content) {
-    fs.appendFileSync(this._getOutputPath(), content);
+    fs.appendFileSync(this._getOutputPath(), this._wrap(content));
+  }
+
+  _wrap(content) {
+    var module = this.entryModule;
+    if(module.isEntry && ModuleManager.isModuleDependenciesReady(module)) {
+      return content + templates.bootstrap;
+    }
+    return content;
   }
 
   delete() {

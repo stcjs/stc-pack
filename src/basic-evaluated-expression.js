@@ -2,6 +2,8 @@
 	MIT License http://www.opensource.org/licenses/mit-license.php
 	Author Tobias Koppers @sokra
 */
+
+// 这里修改了 webpack 的源码，等 stc 实现了 AST 逻辑以后会重新实现
 function BasicEvaluatedExpression() {
 	this.range = null;
 }

@@ -1,6 +1,6 @@
 {
   "name": "stc-pack",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "to pack everything into javascript in stc",
   "main": "lib/index.js",
   "scripts": {

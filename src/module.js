@@ -1,13 +1,10 @@
 class Module {
-  constructor({dependencies, blocks, path, content) {
-    this.dependencies = [];
-    this.blocks = [];
-    this.path = path;
-    this.content = content;
+  constructor(module) {
+    Obejct.assign(this, module);
   }
 
   getCodeBlock() {
-    return `stcPack.module("${this.path}", function(require) {\n ${this.content} \n})\n\n`);
+    return `stcPack.module("${this.path}", function(require) {\n ${this.content} \n})\n\n`;
   }
 }
 
