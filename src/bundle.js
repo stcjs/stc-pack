@@ -3,33 +3,67 @@ import Path from 'path';
 import templates from './templates';
 import ModuleManager from './module-manager';
 class Bundle {
-  constructor(module) {
-    this.moduleIDs = [];
-    // bundle always connect to the entryModule, a bundle's entryModule is immutable.
-    this.entryModule = module;
+  static create(module) {
+    if(module.isEntry) {
+      return new EntryBundle(module);
+    }
+    return new ChainBundle(module);
+  }
 
-    this.addModule(module);
+  constructor(module) {
+    // bundle's rootModule is immutable, immutable, immutable.
+    this.rootModule = module;
+    this.modules = {};
+    this.onCreate(module);
+  }
+
+  onCreate(module) {
+    this.handleCreate(module);
+  }
+
+  mergeBundle(bundle) {
+    if(bundle.rootModule.isEntry) {
+      throw new Error(`Can not merge entry bundle ${bundle.rootModule.path} into bundle ${this.rootModule.path}`);
+    }
+    this.handleMergeBundle(bundle);
   }
 
   addModule(module) {
-    this.moduleIDs.push(module.id);
-    var codeBlock;
-    if(module.isEntry) {
-      codeBlock = templates.DI + templates.entry(module.path, module.content);
-    } else {
-      codeBlock = templates.add(module.path, module.content);
+    this.handleAddModule(module);
+  }
+}
+
+class EntryBundle extends Bundle {
+  handleCreate(module) {
+    this.modules[module.id] = module;
+    var content = templates.DI + templates.entry(module.path, module.content);
+    this._writeContent(content);
+  }
+
+  handleMergeBundle(bundle) {
+    var content = '';
+    var module;
+    for(var moduleId in bundle.modules) {
+      if(!this.modules[moduleId]) {
+        module = bundle.modules[moduleId]
+        this.modules[moduleId] = module;
+        content += templates.add(module.path, module.content);
+      }
     }
-    this._writeContent(codeBlock);
+    this._appendContent(content);
+  }
+
+  handleAddModule(module) {
+    if(!this.modules[module.id]) {
+      this.modules[module.id] = module;
+      var content = templates.add(module.path, module.content);
+      this._appendContent(content);
+    }
   }
 
   _getOutputPath() {
-    var p = Path.join('output', this.entryModule.path.replace(/\.js$/, '.bundle.js'));
+    var p = Path.join('output', this.rootModule.path.replace(/\.js$/, '.bundle.js'));
     return p;
-  }
-
-  _getContent() {
-    var content = fs.readFileSync(this._getOutputPath());
-    return content;
   }
 
   _writeContent(content) {
@@ -41,20 +75,31 @@ class Bundle {
   }
 
   _wrap(content) {
-    var module = this.entryModule;
+    var module = this.rootModule;
     if(module.isEntry && ModuleManager.isModuleDependenciesReady(module)) {
       return content + templates.bootstrap;
     }
     return content;
   }
+}
 
-  delete() {
-    fs.unlinkSync(this._getOutputPath());
+// 作为一个中间状态的 bundle，不会写入到文件中，能够与其它 bundle 合并
+class ChainBundle extends Bundle {
+  handleCreate(module) {
+    this.modules[module.id] = module;
   }
 
-  mergeBundle(bundle) {
-    this.moduleIDs = bundle.moduleIDs.concat(this.moduleIDs);
-    this._appendContent(bundle._getContent());
+  handleMergeBundle(bundle) {
+    for(var moduleId in bundle.modules) {
+      this.modules[moduleId] = bundle.modules[moduleId];
+    }
+    bundle.parents.push
+  }
+
+  handleAddModule(module) {
+    if(!this.modules[module.id]) {
+      this.modules[module.id] = module;
+    }
   }
 }
 

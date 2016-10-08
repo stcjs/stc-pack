@@ -7,60 +7,50 @@ class BundleManager {
     return bundleMap[moduleId];
   }
 
-  addModule(module, parentIDs, childrenIDs) {
+  addModule(module, rootIds, childrenIds) {
     var bundleMap = this.bundleMap;
 
+    // 把所有 module 分别合并到 root module 所在的 bundle 里面
+    if(rootIds.length) {
+      rootIds.forEach(rootId=>{
+        var parentBundle = bundleMap[rootId];
+        if(parentBundle) {
+          parentBundle.addModule(module);
 
-    var bundle = this._addBundle(module);
-
-    // merge children
-    if(childrenIDs.length) {
-      for(var i in childrenIDs) {
-        var childID = childrenIDs[i];
-        let childBundle = bundleMap[childID];
-        if(childBundle) {
-          bundle.mergeBundle(childBundle);
-          this._removeBundle(childID);
-        } else {
-          // this module is not attach to a bundle
-          var childModule = ModuleManager.get(childID);
-          if(childModule) {
-            bundle.addModule(childModule);  
+          if(childrenIds.length) {
+            this._mergeChildren(parentBundle, childrenIds);
           }
         }
-      }
+      });
+      return;
     }
 
-    // merge me and my children to parent bundles.
-    if(parentIDs.length) {
-      for(var i in parentIDs) {
-        let parentBundle = bundleMap[parentIDs[i]];
-        if(!parentBundle) {
-          throw new Error('root parent should always attach to a bundle, this could also be the cycular reference situation');
-        }
-        parentBundle.mergeBundle(bundle);
-      }
-      this._removeBundle(module.id);
+    var bundle = this._addBundle(module);
+    // merge children
+    if(childrenIds.length) {
+      this._mergeChildren(bundle, childrenIds);
     }
+  }
+
+  _mergeChildren(bundle, childrenIds) {
+    childrenIds.forEach(childId=>{
+      var childBundle = this.bundleMap[childId];
+      if(childBundle) {
+        return bundle.mergeBundle(childBundle);
+      } 
+
+      var childModule = ModuleManager.get(childId);
+      if(childModule) {
+        bundle.addModule(childModule);
+      }
+    });
   }
 
   _addBundle(module) {
-    // console.log(`add bundle of ${module.id}`);
-    var bundle = new Bundle(module);
+    var bundle = Bundle.create(module);
     this.bundleMap[module.id] = bundle;
     return bundle;
   }
-
-  _removeBundle(moduleID) {
-    // console.log(`remove bundle of ${moduleID}`);
-    var bundle = this.bundleMap[moduleID];
-    if(!bundle) {
-      throw new Error('try to delete a non-exist bundle');
-    }
-    bundle.delete();
-    delete this.bundleMap[moduleID];
-  }
-
 }
 
 var manager = new BundleManager();

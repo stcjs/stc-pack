@@ -13,31 +13,31 @@ BasicEvaluatedExpression.prototype.isNull = function() {
 	return !!this.null;
 };
 BasicEvaluatedExpression.prototype.isString = function() {
-	return Object.prototype.hasOwnProperty.call(this, "string");
+	return Object.prototype.hasOwnProperty.call(this, 'string');
 };
 BasicEvaluatedExpression.prototype.isNumber = function() {
-	return Object.prototype.hasOwnProperty.call(this, "number");
+	return Object.prototype.hasOwnProperty.call(this, 'number');
 };
 BasicEvaluatedExpression.prototype.isBoolean = function() {
-	return Object.prototype.hasOwnProperty.call(this, "bool");
+	return Object.prototype.hasOwnProperty.call(this, 'bool');
 };
 BasicEvaluatedExpression.prototype.isRegExp = function() {
-	return Object.prototype.hasOwnProperty.call(this, "regExp");
+	return Object.prototype.hasOwnProperty.call(this, 'regExp');
 };
 BasicEvaluatedExpression.prototype.isConditional = function() {
-	return Object.prototype.hasOwnProperty.call(this, "options");
+	return Object.prototype.hasOwnProperty.call(this, 'options');
 };
 BasicEvaluatedExpression.prototype.isArray = function() {
-	return Object.prototype.hasOwnProperty.call(this, "items");
+	return Object.prototype.hasOwnProperty.call(this, 'items');
 };
 BasicEvaluatedExpression.prototype.isConstArray = function() {
-	return Object.prototype.hasOwnProperty.call(this, "array");
+	return Object.prototype.hasOwnProperty.call(this, 'array');
 };
 BasicEvaluatedExpression.prototype.isIdentifier = function() {
-	return Object.prototype.hasOwnProperty.call(this, "identifier");
+	return Object.prototype.hasOwnProperty.call(this, 'identifier');
 };
 BasicEvaluatedExpression.prototype.isWrapped = function() {
-	return Object.prototype.hasOwnProperty.call(this, "prefix") || Object.prototype.hasOwnProperty.call(this, "postfix");
+	return Object.prototype.hasOwnProperty.call(this, 'prefix') || Object.prototype.hasOwnProperty.call(this, 'postfix');
 };
 BasicEvaluatedExpression.prototype.asBool = function() {
 	if(this.isBoolean()) return this.bool;
@@ -51,9 +51,9 @@ BasicEvaluatedExpression.prototype.asBool = function() {
 	return undefined;
 };
 BasicEvaluatedExpression.prototype.set = function(value) {
-	if(typeof value === "string") return this.setString(value);
-	if(typeof value === "number") return this.setNumber(value);
-	if(typeof value === "boolean") return this.setBoolean(value);
+	if(typeof value === 'string') return this.setString(value);
+	if(typeof value === 'number') return this.setNumber(value);
+	if(typeof value === 'boolean') return this.setBoolean(value);
 	if(value === null) return this.setNull();
 	if(value instanceof RegExp) return this.setRegExp(value);
 	if(Array.isArray(value)) return this.setArray(value);

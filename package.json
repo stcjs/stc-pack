@@ -4,7 +4,13 @@
   "description": "to pack everything into javascript in stc",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava test/",
+    "test-cov": "istanbul cover ./node_modules/mocha/bin/_mocha -- -t 50000 --recursive  -R spec test/",
+    "compile": "babel --presets es2015-loose,stage-1 --plugins transform-runtime src/ --out-dir lib/ --source-maps",
+    "watch-compile": "npm run compile -- --watch",
+    "watch": "npm run watch-compile",
+    "prepublish": "npm run compile",
+    "eslint": "eslint src/"
   },
   "repository": {
     "type": "git",
@@ -29,5 +35,12 @@
     "thinkit": "^4.9.0",
     "webpack": "^1.13.2",
     "webpack-sources": "^0.1.2"
+  },
+  "devDependencies": {
+    "ava": "^0.16.0",
+    "babel-cli": "^6.16.0",
+    "babel-eslint": "^7.0.0",
+    "eslint": "^3.7.1",
+    "istanbul": "^0.4.5"
   }
 }

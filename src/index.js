@@ -8,14 +8,14 @@ import BundleManager from './bundle-manager';
 import ModuleManager from './module-manager';
 
 // import DependencyParser  from './dependency/CommonJsRequireDependencyParserPlugin';
-// var LoaderPlugin = require("./lib/dependencies/LoaderPlugin");
-var CommonJsPlugin = require("webpack/lib/dependencies/CommonJsPlugin");
-// var HarmonyModulesPlugin = require("./lib/dependencies/HarmonyModulesPlugin");
-// var SystemPlugin = require("./lib/dependencies/SystemPlugin");
-var AMDPlugin = require("webpack/lib/dependencies/AMDPlugin");
-// var RequireContextPlugin = require("./lib/dependencies/RequireContextPlugin");
-var RequireEnsurePlugin = require("webpack/lib/dependencies/RequireEnsurePlugin");
-// var RequireIncludePlugin = require("./lib/dependencies/RequireIncludePlugin");
+// var LoaderPlugin = require('./lib/dependencies/LoaderPlugin');
+var CommonJsPlugin = require('webpack/lib/dependencies/CommonJsPlugin');
+// var HarmonyModulesPlugin = require('./lib/dependencies/HarmonyModulesPlugin');
+// var SystemPlugin = require('./lib/dependencies/SystemPlugin');
+var AMDPlugin = require('webpack/lib/dependencies/AMDPlugin');
+// var RequireContextPlugin = require('./lib/dependencies/RequireContextPlugin');
+var RequireEnsurePlugin = require('webpack/lib/dependencies/RequireEnsurePlugin');
+// var RequireIncludePlugin = require('./lib/dependencies/RequireIncludePlugin');
 
 
 export default class JSPackPlugin extends Plugin {
@@ -104,7 +104,7 @@ export default class JSPackPlugin extends Plugin {
         endOffset += offset;
       }
     });
-    log(`stcPack.module("${module.path}", function(require) {\n ${module.content} \n})\n\n\n`, 'appendFile');
+    log(`stcPack.module('${module.path}', function(require) {\n ${module.content} \n})\n\n\n`, 'appendFile');
   }
 
   /**

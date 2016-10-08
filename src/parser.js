@@ -2,8 +2,8 @@
   MIT License http://www.opensource.org/licenses/mit-license.php
   Author Tobias Koppers @sokra
 */
-var Tapable = require("tapable");
-var BasicEvaluatedExpression = require("./basic-evaluated-expression");
+var Tapable = require('tapable');
+var BasicEvaluatedExpression = require('./basic-evaluated-expression');
 
 function Parser(options) {
   Tapable.call(this);
@@ -24,13 +24,13 @@ Parser.prototype.initializeEvaluating = function() {
     if(!startRange) return endRange;
     return [startRange[0], endRange[1]];
   }
-  this.plugin("evaluate Literal", function(expr) {
+  this.plugin('evaluate Literal', function(expr) {
     switch(typeof expr.value) {
-      case "number":
+      case 'number':
         return new BasicEvaluatedExpression().setNumber(expr.value).setRange(expr.range);
-      case "string":
+      case 'string':
         return new BasicEvaluatedExpression().setString(expr.value).setRange(expr.range);
-      case "boolean":
+      case 'boolean':
         return new BasicEvaluatedExpression().setBoolean(expr.value).setRange(expr.range);
     }
     if(expr.value === null)
@@ -38,18 +38,18 @@ Parser.prototype.initializeEvaluating = function() {
     if(expr.value instanceof RegExp)
       return new BasicEvaluatedExpression().setRegExp(expr.value).setRange(expr.range);
   });
-  this.plugin("evaluate LogicalExpression", function(expr) {
+  this.plugin('evaluate LogicalExpression', function(expr) {
     var left;
     var leftAsBool;
     var right;
-    if(expr.operator === "&&") {
+    if(expr.operator === '&&') {
       left = this.evaluateExpression(expr.left);
       leftAsBool = left && left.asBool();
       if(leftAsBool === false) return left.setRange(expr.range);
       if(leftAsBool !== true) return;
       right = this.evaluateExpression(expr.right);
       return right.setRange(expr.range);
-    } else if(expr.operator === "||") {
+    } else if(expr.operator === '||') {
       left = this.evaluateExpression(expr.left);
       leftAsBool = left && left.asBool();
       if(leftAsBool === true) return left.setRange(expr.range);
@@ -58,11 +58,11 @@ Parser.prototype.initializeEvaluating = function() {
       return right.setRange(expr.range);
     }
   });
-  this.plugin("evaluate BinaryExpression", function(expr) {
+  this.plugin('evaluate BinaryExpression', function(expr) {
     var left;
     var right;
     var res;
-    if(expr.operator === "+") {
+    if(expr.operator === '+') {
       left = this.evaluateExpression(expr.left);
       right = this.evaluateExpression(expr.right);
       if(!left || !right) return;
@@ -105,7 +105,7 @@ Parser.prototype.initializeEvaluating = function() {
         } else if(right.isNumber()) {
           res.setWrapped(left.prefix,
             new BasicEvaluatedExpression()
-            .setString(right.number + "")
+            .setString(right.number + '')
             .setRange(right.range));
         } else {
           res.setWrapped(left.prefix, new BasicEvaluatedExpression());
@@ -117,7 +117,7 @@ Parser.prototype.initializeEvaluating = function() {
       }
       res.setRange(expr.range);
       return res;
-    } else if(expr.operator === "-") {
+    } else if(expr.operator === '-') {
       left = this.evaluateExpression(expr.left);
       right = this.evaluateExpression(expr.right);
       if(!left || !right) return;
@@ -126,7 +126,7 @@ Parser.prototype.initializeEvaluating = function() {
       res.setNumber(left.number - right.number);
       res.setRange(expr.range);
       return res;
-    } else if(expr.operator === "*") {
+    } else if(expr.operator === '*') {
       left = this.evaluateExpression(expr.left);
       right = this.evaluateExpression(expr.right);
       if(!left || !right) return;
@@ -135,7 +135,7 @@ Parser.prototype.initializeEvaluating = function() {
       res.setNumber(left.number * right.number);
       res.setRange(expr.range);
       return res;
-    } else if(expr.operator === "/") {
+    } else if(expr.operator === '/') {
       left = this.evaluateExpression(expr.left);
       right = this.evaluateExpression(expr.right);
       if(!left || !right) return;
@@ -144,7 +144,7 @@ Parser.prototype.initializeEvaluating = function() {
       res.setNumber(left.number / right.number);
       res.setRange(expr.range);
       return res;
-    } else if(expr.operator === "==" || expr.operator === "===") {
+    } else if(expr.operator === '==' || expr.operator === '===') {
       left = this.evaluateExpression(expr.left);
       right = this.evaluateExpression(expr.right);
       if(!left || !right) return;
@@ -157,7 +157,7 @@ Parser.prototype.initializeEvaluating = function() {
       } else if(left.isBoolean() && right.isBoolean()) {
         return res.setBoolean(left.bool === right.bool);
       }
-    } else if(expr.operator === "!=" || expr.operator === "!==") {
+    } else if(expr.operator === '!=' || expr.operator === '!==') {
       left = this.evaluateExpression(expr.left);
       right = this.evaluateExpression(expr.right);
       if(!left || !right) return;
@@ -172,41 +172,41 @@ Parser.prototype.initializeEvaluating = function() {
       }
     }
   });
-  this.plugin("evaluate UnaryExpression", function(expr) {
-    if(expr.operator === "typeof") {
+  this.plugin('evaluate UnaryExpression', function(expr) {
+    if(expr.operator === 'typeof') {
       var res;
-      if(expr.argument.type === "Identifier") {
-        var name = this.scope.renames["$" + expr.argument.name] || expr.argument.name;
+      if(expr.argument.type === 'Identifier') {
+        var name = this.scope.renames['$' + expr.argument.name] || expr.argument.name;
         if(this.scope.definitions.indexOf(name) === -1) {
-          res = this.applyPluginsBailResult("evaluate typeof " + name, expr);
+          res = this.applyPluginsBailResult('evaluate typeof ' + name, expr);
           if(res !== undefined) return res;
         }
       }
-      if(expr.argument.type === "MemberExpression") {
+      if(expr.argument.type === 'MemberExpression') {
         var expression = expr.argument;
         var exprName = [];
-        while(expression.type === "MemberExpression" && !expression.computed) {
-          exprName.unshift(this.scope.renames["$" + expression.property.name] || expression.property.name);
+        while(expression.type === 'MemberExpression' && !expression.computed) {
+          exprName.unshift(this.scope.renames['$' + expression.property.name] || expression.property.name);
           expression = expression.object;
         }
-        if(expression.type === "Identifier") {
-          exprName.unshift(this.scope.renames["$" + expression.name] || expression.name);
+        if(expression.type === 'Identifier') {
+          exprName.unshift(this.scope.renames['$' + expression.name] || expression.name);
           if(this.scope.definitions.indexOf(name) === -1) {
-            exprName = exprName.join(".");
-            res = this.applyPluginsBailResult("evaluate typeof " + exprName, expr);
+            exprName = exprName.join('.');
+            res = this.applyPluginsBailResult('evaluate typeof ' + exprName, expr);
             if(res !== undefined) return res;
           }
         }
       }
-      if(expr.argument.type === "FunctionExpression") {
-        return new BasicEvaluatedExpression().setString("function").setRange(expr.range);
+      if(expr.argument.type === 'FunctionExpression') {
+        return new BasicEvaluatedExpression().setString('function').setRange(expr.range);
       }
       var arg = this.evaluateExpression(expr.argument);
-      if(arg.isString() || arg.isWrapped()) return new BasicEvaluatedExpression().setString("string").setRange(expr.range);
-      else if(arg.isNumber()) return new BasicEvaluatedExpression().setString("number").setRange(expr.range);
-      else if(arg.isBoolean()) return new BasicEvaluatedExpression().setString("boolean").setRange(expr.range);
-      else if(arg.isArray() || arg.isConstArray() || arg.isRegExp()) return new BasicEvaluatedExpression().setString("object").setRange(expr.range);
-    } else if(expr.operator === "!") {
+      if(arg.isString() || arg.isWrapped()) return new BasicEvaluatedExpression().setString('string').setRange(expr.range);
+      else if(arg.isNumber()) return new BasicEvaluatedExpression().setString('number').setRange(expr.range);
+      else if(arg.isBoolean()) return new BasicEvaluatedExpression().setString('boolean').setRange(expr.range);
+      else if(arg.isArray() || arg.isConstArray() || arg.isRegExp()) return new BasicEvaluatedExpression().setString('object').setRange(expr.range);
+    } else if(expr.operator === '!') {
       var argument = this.evaluateExpression(expr.argument);
       if(!argument) return;
       if(argument.isBoolean()) {
@@ -218,52 +218,52 @@ Parser.prototype.initializeEvaluating = function() {
       }
     }
   });
-  this.plugin("evaluate typeof undefined", function(expr) {
-    return new BasicEvaluatedExpression().setString("undefined").setRange(expr.range);
+  this.plugin('evaluate typeof undefined', function(expr) {
+    return new BasicEvaluatedExpression().setString('undefined').setRange(expr.range);
   });
-  this.plugin("evaluate Identifier", function(expr) {
-    var name = this.scope.renames["$" + expr.name] || expr.name;
+  this.plugin('evaluate Identifier', function(expr) {
+    var name = this.scope.renames['$' + expr.name] || expr.name;
     if(this.scope.definitions.indexOf(expr.name) === -1) {
-      var result = this.applyPluginsBailResult("evaluate Identifier " + name, expr);
+      var result = this.applyPluginsBailResult('evaluate Identifier ' + name, expr);
       if(result) return result;
       return new BasicEvaluatedExpression().setIdentifier(name).setRange(expr.range);
     } else {
-      return this.applyPluginsBailResult("evaluate defined Identifier " + name, expr);
+      return this.applyPluginsBailResult('evaluate defined Identifier ' + name, expr);
     }
   });
-  this.plugin("evaluate MemberExpression", function(expression) {
+  this.plugin('evaluate MemberExpression', function(expression) {
     var expr = expression;
     var exprName = [];
-    while(expr.type === "MemberExpression" &&
-      expr.property.type === (expr.computed ? "Literal" : "Identifier")
+    while(expr.type === 'MemberExpression' &&
+      expr.property.type === (expr.computed ? 'Literal' : 'Identifier')
     ) {
       exprName.unshift(expr.property.name || expr.property.value);
       expr = expr.object;
     }
-    if(expr.type === "Identifier") {
-      var name = this.scope.renames["$" + expr.name] || expr.name;
+    if(expr.type === 'Identifier') {
+      var name = this.scope.renames['$' + expr.name] || expr.name;
       if(this.scope.definitions.indexOf(name) === -1) {
         exprName.unshift(name);
-        exprName = exprName.join(".");
+        exprName = exprName.join('.');
         if(this.scope.definitions.indexOf(expr.name) === -1) {
-          var result = this.applyPluginsBailResult("evaluate Identifier " + exprName, expression);
+          var result = this.applyPluginsBailResult('evaluate Identifier ' + exprName, expression);
           if(result) return result;
           return new BasicEvaluatedExpression().setIdentifier(exprName).setRange(expression.range);
         } else {
-          return this.applyPluginsBailResult("evaluate defined Identifier " + exprName, expression);
+          return this.applyPluginsBailResult('evaluate defined Identifier ' + exprName, expression);
         }
       }
     }
   });
-  this.plugin("evaluate CallExpression", function(expr) {
-    if(expr.callee.type !== "MemberExpression") return;
-    if(expr.callee.property.type !== (expr.callee.computed ? "Literal" : "Identifier")) return;
+  this.plugin('evaluate CallExpression', function(expr) {
+    if(expr.callee.type !== 'MemberExpression') return;
+    if(expr.callee.property.type !== (expr.callee.computed ? 'Literal' : 'Identifier')) return;
     var param = this.evaluateExpression(expr.callee.object);
     if(!param) return;
     var property = expr.callee.property.name || expr.callee.property.value;
-    return this.applyPluginsBailResult("evaluate CallExpression ." + property, expr, param);
+    return this.applyPluginsBailResult('evaluate CallExpression .' + property, expr, param);
   });
-  this.plugin("evaluate CallExpression .replace", function(expr, param) {
+  this.plugin('evaluate CallExpression .replace', function(expr, param) {
     if(!param.isString()) return;
     if(expr.arguments.length !== 2) return;
     var arg1 = this.evaluateExpression(expr.arguments[0]);
@@ -274,8 +274,8 @@ Parser.prototype.initializeEvaluating = function() {
     arg2 = arg2.string;
     return new BasicEvaluatedExpression().setString(param.string.replace(arg1, arg2)).setRange(expr.range);
   });
-  ["substr", "substring"].forEach(function(fn) {
-    this.plugin("evaluate CallExpression ." + fn, function(expr, param) {
+  ['substr', 'substring'].forEach(function(fn) {
+    this.plugin('evaluate CallExpression .' + fn, function(expr, param) {
       if(!param.isString()) return;
       var arg1;
       var result, str = param.string;
@@ -298,7 +298,7 @@ Parser.prototype.initializeEvaluating = function() {
       return new BasicEvaluatedExpression().setString(result).setRange(expr.range);
     });
   }, this);
-  this.plugin("evaluate CallExpression .split", function(expr, param) {
+  this.plugin('evaluate CallExpression .split', function(expr, param) {
     if(!param.isString()) return;
     if(expr.arguments.length !== 1) return;
     var result;
@@ -310,7 +310,7 @@ Parser.prototype.initializeEvaluating = function() {
     } else return;
     return new BasicEvaluatedExpression().setArray(result).setRange(expr.range);
   });
-  this.plugin("evaluate ConditionalExpression", function(expr) {
+  this.plugin('evaluate ConditionalExpression', function(expr) {
     var condition = this.evaluateExpression(expr.test);
     var conditionValue = condition.asBool();
     var res;
@@ -333,7 +333,7 @@ Parser.prototype.initializeEvaluating = function() {
     res.setRange(expr.range);
     return res;
   });
-  this.plugin("evaluate ArrayExpression", function(expr) {
+  this.plugin('evaluate ArrayExpression', function(expr) {
     var items = expr.elements.map(function(element) {
       return element !== null && this.evaluateExpression(element);
     }, this);
@@ -352,9 +352,9 @@ Parser.prototype.getRenameIdentifier = function getRenameIdentifier(expr) {
 Parser.prototype.walkClass = function walkClass(classy) {
   if(classy.superClass)
     this.walkExpression(classy.superClass);
-  if(classy.body && classy.body.type === "ClassBody") {
+  if(classy.body && classy.body.type === 'ClassBody') {
     classy.body.body.forEach(function(methodDefinition) {
-      if(methodDefinition.type === "MethodDefinition")
+      if(methodDefinition.type === 'MethodDefinition')
         this.walkMethodDefinition(methodDefinition);
     }, this);
   }
@@ -380,16 +380,16 @@ Parser.prototype.walkStatements = function walkStatements(statements) {
 
 Parser.prototype.isHoistedStatement = function isHoistedStatement(statement) {
   switch(statement.type) {
-    case "ImportDeclaration":
+    case 'ImportDeclaration':
       return true;
   }
   return false;
 };
 
 Parser.prototype.walkStatement = function walkStatement(statement) {
-  if(this.applyPluginsBailResult("statement", statement) !== undefined) return;
-  if(this["walk" + statement.type])
-    this["walk" + statement.type](statement);
+  if(this.applyPluginsBailResult('statement', statement) !== undefined) return;
+  if(this['walk' + statement.type])
+    this['walk' + statement.type](statement);
 };
 
 // Real Statements
@@ -402,7 +402,7 @@ Parser.prototype.walkExpressionStatement = function walkExpressionStatement(stat
 };
 
 Parser.prototype.walkIfStatement = function walkIfStatement(statement) {
-  var result = this.applyPluginsBailResult("statement if", statement);
+  var result = this.applyPluginsBailResult('statement if', statement);
   if(result === undefined) {
     this.walkExpression(statement.test);
     this.walkStatement(statement.consequent);
@@ -417,7 +417,7 @@ Parser.prototype.walkIfStatement = function walkIfStatement(statement) {
 };
 
 Parser.prototype.walkLabeledStatement = function walkLabeledStatement(statement) {
-  var result = this.applyPluginsBailResult("label " + statement.label.name, statement);
+  var result = this.applyPluginsBailResult('label ' + statement.label.name, statement);
   if(result !== true)
     this.walkStatement(statement.body);
 };
@@ -460,7 +460,7 @@ Parser.prototype.walkWhileStatement =
 
 Parser.prototype.walkForStatement = function walkForStatement(statement) {
   if(statement.init) {
-    if(statement.init.type === "VariableDeclaration")
+    if(statement.init.type === 'VariableDeclaration')
       this.walkStatement(statement.init);
     else
       this.walkExpression(statement.init);
@@ -473,7 +473,7 @@ Parser.prototype.walkForStatement = function walkForStatement(statement) {
 };
 
 Parser.prototype.walkForInStatement = function walkForInStatement(statement) {
-  if(statement.left.type === "VariableDeclaration")
+  if(statement.left.type === 'VariableDeclaration')
     this.walkStatement(statement.left);
   else
     this.walkExpression(statement.left);
@@ -482,7 +482,7 @@ Parser.prototype.walkForInStatement = function walkForInStatement(statement) {
 };
 
 Parser.prototype.walkForOfStatement = function walkForOfStatement(statement) {
-  if(statement.left.type === "VariableDeclaration")
+  if(statement.left.type === 'VariableDeclaration')
     this.walkStatement(statement.left);
   else
     this.walkExpression(statement.left);
@@ -492,10 +492,10 @@ Parser.prototype.walkForOfStatement = function walkForOfStatement(statement) {
 
 // Declarations
 Parser.prototype.walkFunctionDeclaration = function walkFunctionDeclaration(statement) {
-  this.scope.renames["$" + statement.id.name] = undefined;
+  this.scope.renames['$' + statement.id.name] = undefined;
   this.scope.definitions.push(statement.id.name);
   this.inScope(statement.params, function() {
-    if(statement.body.type === "BlockStatement")
+    if(statement.body.type === 'BlockStatement')
       this.walkStatement(statement.body);
     else
       this.walkExpression(statement.body);
@@ -504,20 +504,20 @@ Parser.prototype.walkFunctionDeclaration = function walkFunctionDeclaration(stat
 
 Parser.prototype.walkImportDeclaration = function walkImportDeclaration(statement) {
   var source = statement.source.value;
-  this.applyPluginsBailResult("import", statement, source);
+  this.applyPluginsBailResult('import', statement, source);
   statement.specifiers.forEach(function(specifier) {
     var name = specifier.local.name;
-    this.scope.renames["$" + name] = undefined;
+    this.scope.renames['$' + name] = undefined;
     this.scope.definitions.push(name);
     switch(specifier.type) {
-      case "ImportDefaultSpecifier":
-        this.applyPluginsBailResult("import specifier", statement, source, "default", name);
+      case 'ImportDefaultSpecifier':
+        this.applyPluginsBailResult('import specifier', statement, source, 'default', name);
         break;
-      case "ImportSpecifier":
-        this.applyPluginsBailResult("import specifier", statement, source, specifier.imported.name, name);
+      case 'ImportSpecifier':
+        this.applyPluginsBailResult('import specifier', statement, source, specifier.imported.name, name);
         break;
-      case "ImportNamespaceSpecifier":
-        this.applyPluginsBailResult("import specifier", statement, source, null, name);
+      case 'ImportNamespaceSpecifier':
+        this.applyPluginsBailResult('import specifier', statement, source, null, name);
         break;
     }
   }, this);
@@ -526,20 +526,20 @@ Parser.prototype.walkImportDeclaration = function walkImportDeclaration(statemen
 Parser.prototype.walkExportNamedDeclaration = function walkExportNamedDeclaration(statement) {
   if(statement.source) {
     var source = statement.source.value;
-    this.applyPluginsBailResult("export import", statement, source);
+    this.applyPluginsBailResult('export import', statement, source);
   } else {
-    this.applyPluginsBailResult("export", statement);
+    this.applyPluginsBailResult('export', statement);
   }
   if(statement.declaration) {
     if(/Expression$/.test(statement.declaration.type)) {
-      throw new Error("Doesn't occur?");
+      throw new Error('Doesn\'t occur?');
     } else {
-      if(!this.applyPluginsBailResult("export declaration", statement, statement.declaration)) {
+      if(!this.applyPluginsBailResult('export declaration', statement, statement.declaration)) {
         var pos = this.scope.definitions.length;
         this.walkStatement(statement.declaration);
         var newDefs = this.scope.definitions.slice(pos);
         newDefs.reverse().forEach(function(def) {
-          this.applyPluginsBailResult("export specifier", statement, def, def);
+          this.applyPluginsBailResult('export specifier', statement, def, def);
         }, this);
       }
     }
@@ -547,12 +547,12 @@ Parser.prototype.walkExportNamedDeclaration = function walkExportNamedDeclaratio
   if(statement.specifiers) {
     statement.specifiers.forEach(function(specifier) {
       switch(specifier.type) {
-        case "ExportSpecifier":
+        case 'ExportSpecifier':
           var name = specifier.exported.name;
           if(source)
-            this.applyPluginsBailResult("export import specifier", statement, source, specifier.local.name, name);
+            this.applyPluginsBailResult('export import specifier', statement, source, specifier.local.name, name);
           else
-            this.applyPluginsBailResult("export specifier", statement, specifier.local.name, name);
+            this.applyPluginsBailResult('export specifier', statement, specifier.local.name, name);
           break;
       }
     }, this);
@@ -560,28 +560,28 @@ Parser.prototype.walkExportNamedDeclaration = function walkExportNamedDeclaratio
 };
 
 Parser.prototype.walkExportDefaultDeclaration = function walkExportDefaultDeclaration(statement) {
-  this.applyPluginsBailResult("export", statement);
+  this.applyPluginsBailResult('export', statement);
   if(/Declaration$/.test(statement.declaration.type)) {
-    if(!this.applyPluginsBailResult("export declaration", statement, statement.declaration)) {
+    if(!this.applyPluginsBailResult('export declaration', statement, statement.declaration)) {
       var pos = this.scope.definitions.length;
       this.walkStatement(statement.declaration);
       var newDefs = this.scope.definitions.slice(pos);
       newDefs.forEach(function(def) {
-        this.applyPluginsBailResult("export specifier", statement, def, "default");
+        this.applyPluginsBailResult('export specifier', statement, def, 'default');
       }, this);
     }
   } else {
     this.walkExpression(statement.declaration);
-    if(!this.applyPluginsBailResult("export expression", statement, statement.declaration)) {
-      this.applyPluginsBailResult("export specifier", statement, statement.declaration, "default");
+    if(!this.applyPluginsBailResult('export expression', statement, statement.declaration)) {
+      this.applyPluginsBailResult('export specifier', statement, statement.declaration, 'default');
     }
   }
 };
 
 Parser.prototype.walkExportAllDeclaration = function walkExportAllDeclaration(statement) {
   var source = statement.source.value;
-  this.applyPluginsBailResult("export import", statement, source);
-  this.applyPluginsBailResult("export import specifier", statement, source, null, null);
+  this.applyPluginsBailResult('export import', statement, source);
+  this.applyPluginsBailResult('export import specifier', statement, source, null, null);
 };
 
 Parser.prototype.walkVariableDeclaration = function walkVariableDeclaration(statement) {
@@ -590,7 +590,7 @@ Parser.prototype.walkVariableDeclaration = function walkVariableDeclaration(stat
 };
 
 Parser.prototype.walkClassDeclaration = function walkClassDeclaration(statement) {
-  this.scope.renames["$" + statement.id.name] = undefined;
+  this.scope.renames['$' + statement.id.name] = undefined;
   this.scope.definitions.push(statement.id.name);
   this.walkClass(statement);
 };
@@ -614,17 +614,17 @@ Parser.prototype.walkCatchClause = function walkCatchClause(catchClause) {
 Parser.prototype.walkVariableDeclarators = function walkVariableDeclarators(declarators) {
   declarators.forEach(function(declarator) {
     switch(declarator.type) {
-      case "VariableDeclarator":
+      case 'VariableDeclarator':
         var renameIdentifier = declarator.init && this.getRenameIdentifier(declarator.init);
-        if(renameIdentifier && declarator.id.type === "Identifier" && this.applyPluginsBailResult("can-rename " + renameIdentifier, declarator.init)) {
-          // renaming with "var a = b;"
-          if(!this.applyPluginsBailResult("rename " + renameIdentifier, declarator.init)) {
-            this.scope.renames["$" + declarator.id.name] = this.scope.renames["$" + renameIdentifier] || renameIdentifier;
+        if(renameIdentifier && declarator.id.type === 'Identifier' && this.applyPluginsBailResult('can-rename ' + renameIdentifier, declarator.init)) {
+          // renaming with 'var a = b;'
+          if(!this.applyPluginsBailResult('rename ' + renameIdentifier, declarator.init)) {
+            this.scope.renames['$' + declarator.id.name] = this.scope.renames['$' + renameIdentifier] || renameIdentifier;
             var idx = this.scope.definitions.indexOf(declarator.id.name);
             if(idx >= 0) this.scope.definitions.splice(idx, 1);
           }
-        } else if(declarator.id.type === "Identifier" && !this.applyPluginsBailResult("var " + declarator.id.name, declarator)) {
-          this.scope.renames["$" + declarator.id.name] = undefined;
+        } else if(declarator.id.type === 'Identifier' && !this.applyPluginsBailResult('var ' + declarator.id.name, declarator)) {
+          this.scope.renames['$' + declarator.id.name] = undefined;
           this.scope.definitions.push(declarator.id.name);
           if(declarator.init)
             this.walkExpression(declarator.init);
@@ -646,8 +646,8 @@ Parser.prototype.walkExpressions = function walkExpressions(expressions) {
 };
 
 Parser.prototype.walkExpression = function walkExpression(expression) {
-  if(this["walk" + expression.type])
-    return this["walk" + expression.type](expression);
+  if(this['walk' + expression.type])
+    return this['walk' + expression.type](expression);
 };
 
 Parser.prototype.walkArrayExpression = function walkArrayExpression(expression) {
@@ -674,7 +674,7 @@ Parser.prototype.walkObjectExpression = function walkObjectExpression(expression
 
 Parser.prototype.walkFunctionExpression = function walkFunctionExpression(expression) {
   this.inScope(expression.params, function() {
-    if(expression.body.type === "BlockStatement")
+    if(expression.body.type === 'BlockStatement')
       this.walkStatement(expression.body);
     else
       this.walkExpression(expression.body);
@@ -683,7 +683,7 @@ Parser.prototype.walkFunctionExpression = function walkFunctionExpression(expres
 
 Parser.prototype.walkArrowFunctionExpression = function walkArrowFunctionExpression(expression) {
   this.inScope(expression.params, function() {
-    if(expression.body.type === "BlockStatement")
+    if(expression.body.type === 'BlockStatement')
       this.walkStatement(expression.body);
     else
       this.walkExpression(expression.body);
@@ -700,19 +700,19 @@ Parser.prototype.walkUpdateExpression = function walkUpdateExpression(expression
 };
 
 Parser.prototype.walkUnaryExpression = function walkUnaryExpression(expression) {
-  if(expression.operator === "typeof") {
+  if(expression.operator === 'typeof') {
     var expr = expression.argument;
     var exprName = [];
-    while(expr.type === "MemberExpression" &&
-      expr.property.type === (expr.computed ? "Literal" : "Identifier")
+    while(expr.type === 'MemberExpression' &&
+      expr.property.type === (expr.computed ? 'Literal' : 'Identifier')
     ) {
       exprName.unshift(expr.property.name || expr.property.value);
       expr = expr.object;
     }
-    if(expr.type === "Identifier" && this.scope.definitions.indexOf(expr.name) === -1) {
-      exprName.unshift(this.scope.renames["$" + expr.name] || expr.name);
-      exprName = exprName.join(".");
-      var result = this.applyPluginsBailResult("typeof " + exprName, expression);
+    if(expr.type === 'Identifier' && this.scope.definitions.indexOf(expr.name) === -1) {
+      exprName.unshift(this.scope.renames['$' + expr.name] || expr.name);
+      exprName = exprName.join('.');
+      var result = this.applyPluginsBailResult('typeof ' + exprName, expression);
       if(result === true)
         return;
     }
@@ -728,30 +728,30 @@ Parser.prototype.walkBinaryExpression =
 
 Parser.prototype.walkAssignmentExpression = function walkAssignmentExpression(expression) {
   var renameIdentifier = this.getRenameIdentifier(expression.right);
-  if(expression.left.type === "Identifier" && renameIdentifier && this.applyPluginsBailResult("can-rename " + renameIdentifier, expression.right)) {
-    // renaming "a = b;"
-    if(!this.applyPluginsBailResult("rename " + renameIdentifier, expression.right)) {
-      this.scope.renames["$" + expression.left.name] = renameIdentifier;
+  if(expression.left.type === 'Identifier' && renameIdentifier && this.applyPluginsBailResult('can-rename ' + renameIdentifier, expression.right)) {
+    // renaming 'a = b;'
+    if(!this.applyPluginsBailResult('rename ' + renameIdentifier, expression.right)) {
+      this.scope.renames['$' + expression.left.name] = renameIdentifier;
       var idx = this.scope.definitions.indexOf(expression.left.name);
       if(idx >= 0) this.scope.definitions.splice(idx, 1);
     }
-  } else if(expression.left.type === "Identifier") {
-    if(!this.applyPluginsBailResult("assigned " + expression.left.name, expression)) {
+  } else if(expression.left.type === 'Identifier') {
+    if(!this.applyPluginsBailResult('assigned ' + expression.left.name, expression)) {
       this.walkExpression(expression.right);
     }
-    this.scope.renames["$" + expression.left.name] = undefined;
-    if(!this.applyPluginsBailResult("assign " + expression.left.name, expression)) {
+    this.scope.renames['$' + expression.left.name] = undefined;
+    if(!this.applyPluginsBailResult('assign ' + expression.left.name, expression)) {
       this.walkExpression(expression.left);
     }
   } else {
     this.walkExpression(expression.right);
-    this.scope.renames["$" + expression.left.name] = undefined;
+    this.scope.renames['$' + expression.left.name] = undefined;
     this.walkExpression(expression.left);
   }
 };
 
 Parser.prototype.walkConditionalExpression = function walkConditionalExpression(expression) {
-  var result = this.applyPluginsBailResult("expression ?:", expression);
+  var result = this.applyPluginsBailResult('expression ?:', expression);
   if(result === undefined) {
     this.walkExpression(expression.test);
     this.walkExpression(expression.consequent);
@@ -797,8 +797,8 @@ Parser.prototype.walkCallExpression = function walkCallExpression(expression) {
     var params = functionExpression.params;
     args = args.map(function(arg) {
       var renameIdentifier = this.getRenameIdentifier(arg);
-      if(renameIdentifier && this.applyPluginsBailResult("can-rename " + renameIdentifier, arg)) {
-        if(!this.applyPluginsBailResult("rename " + renameIdentifier, arg))
+      if(renameIdentifier && this.applyPluginsBailResult('can-rename ' + renameIdentifier, arg)) {
+        if(!this.applyPluginsBailResult('rename ' + renameIdentifier, arg))
           return renameIdentifier;
       }
       this.walkExpression(arg);
@@ -808,27 +808,27 @@ Parser.prototype.walkCallExpression = function walkCallExpression(expression) {
     }), function() {
       args.forEach(function(arg, idx) {
         if(!arg) return;
-        if(!params[idx] || params[idx].type !== "Identifier") return;
-        this.scope.renames["$" + params[idx].name] = arg;
+        if(!params[idx] || params[idx].type !== 'Identifier') return;
+        this.scope.renames['$' + params[idx].name] = arg;
       }, this);
-      if(functionExpression.body.type === "BlockStatement")
+      if(functionExpression.body.type === 'BlockStatement')
         this.walkStatement(functionExpression.body);
       else
         this.walkExpression(functionExpression.body);
     }.bind(this));
   }
-  if(expression.callee.type === "MemberExpression" && expression.callee.object.type === "FunctionExpression" && !expression.callee.computed && ["call", "bind"].indexOf(expression.callee.property.name) >= 0 && expression.arguments && expression.arguments.length > 1) {
+  if(expression.callee.type === 'MemberExpression' && expression.callee.object.type === 'FunctionExpression' && !expression.callee.computed && ['call', 'bind'].indexOf(expression.callee.property.name) >= 0 && expression.arguments && expression.arguments.length > 1) {
     // (function(...) { }.call/bind(?, ...))
     walkIIFE.call(this, expression.callee.object, expression.arguments.slice(1));
     this.walkExpression(expression.arguments[0]);
-  } else if(expression.callee.type === "FunctionExpression" && expression.arguments) {
+  } else if(expression.callee.type === 'FunctionExpression' && expression.arguments) {
     // (function(...) { }(...))
     walkIIFE.call(this, expression.callee, expression.arguments);
   } else {
 
     var callee = this.evaluateExpression(expression.callee);
     if(callee.isIdentifier()) {
-      var result = this.applyPluginsBailResult("call " + callee.identifier, expression);
+      var result = this.applyPluginsBailResult('call ' + callee.identifier, expression);
       if(result === true)
         return;
     }
@@ -843,19 +843,19 @@ Parser.prototype.walkCallExpression = function walkCallExpression(expression) {
 Parser.prototype.walkMemberExpression = function walkMemberExpression(expression) {
   var expr = expression;
   var exprName = [];
-  while(expr.type === "MemberExpression" &&
-    expr.property.type === (expr.computed ? "Literal" : "Identifier")
+  while(expr.type === 'MemberExpression' &&
+    expr.property.type === (expr.computed ? 'Literal' : 'Identifier')
   ) {
     exprName.unshift(expr.property.name || expr.property.value);
     expr = expr.object;
   }
-  if(expr.type === "Identifier" && this.scope.definitions.indexOf(expr.name) === -1) {
-    exprName.unshift(this.scope.renames["$" + expr.name] || expr.name);
-    var result = this.applyPluginsBailResult("expression " + exprName.join("."), expression);
+  if(expr.type === 'Identifier' && this.scope.definitions.indexOf(expr.name) === -1) {
+    exprName.unshift(this.scope.renames['$' + expr.name] || expr.name);
+    var result = this.applyPluginsBailResult('expression ' + exprName.join('.'), expression);
     if(result === true)
       return;
-    exprName[exprName.length - 1] = "*";
-    result = this.applyPluginsBailResult("expression " + exprName.join("."), expression);
+    exprName[exprName.length - 1] = '*';
+    result = this.applyPluginsBailResult('expression ' + exprName.join('.'), expression);
     if(result === true)
       return;
   }
@@ -866,7 +866,7 @@ Parser.prototype.walkMemberExpression = function walkMemberExpression(expression
 
 Parser.prototype.walkIdentifier = function walkIdentifier(expression) {
   if(this.scope.definitions.indexOf(expression.name) === -1) {
-    var result = this.applyPluginsBailResult("expression " + (this.scope.renames["$" + expression.name] || expression.name), expression);
+    var result = this.applyPluginsBailResult('expression ' + (this.scope.renames['$' + expression.name] || expression.name), expression);
     if(result === true)
       return;
   }
@@ -882,13 +882,13 @@ Parser.prototype.inScope = function inScope(params, fn) {
     renames: Object.create(oldScope.renames)
   };
   params.forEach(function(param) {
-    if(typeof param !== "string") {
+    if(typeof param !== 'string') {
       param = _this.enterPattern(param, function(param) {
-        _this.scope.renames["$" + param] = undefined;
+        _this.scope.renames['$' + param] = undefined;
         _this.scope.definitions.push(param);
       });
     } else {
-      _this.scope.renames["$" + param] = undefined;
+      _this.scope.renames['$' + param] = undefined;
       _this.scope.definitions.push(param);
     }
   });
@@ -897,8 +897,8 @@ Parser.prototype.inScope = function inScope(params, fn) {
 };
 
 Parser.prototype.enterPattern = function enterPattern(pattern, onIdent) {
-  if(this["enter" + pattern.type])
-    return this["enter" + pattern.type](pattern, onIdent);
+  if(this['enter' + pattern.type])
+    return this['enter' + pattern.type](pattern, onIdent);
 };
 
 Parser.prototype.enterIdentifier = function enterIdentifier(pattern, onIdent) {
@@ -908,7 +908,7 @@ Parser.prototype.enterIdentifier = function enterIdentifier(pattern, onIdent) {
 Parser.prototype.enterObjectPattern = function enterObjectPattern(pattern, onIdent) {
   pattern.properties.forEach(function(property) {
     switch(property.type) {
-      case "AssignmentProperty":
+      case 'AssignmentProperty':
         this.enterPattern(property.value, onIdent);
         break;
     }
@@ -932,7 +932,7 @@ Parser.prototype.enterAssignmentPattern = function enterAssignmentPattern(patter
 
 Parser.prototype.evaluateExpression = function evaluateExpression(expression) {
   try {
-    var result = this.applyPluginsBailResult1("evaluate " + expression.type, expression);
+    var result = this.applyPluginsBailResult1('evaluate ' + expression.type, expression);
     if(result !== undefined)
       return result;
   } catch(e) {
@@ -944,20 +944,20 @@ Parser.prototype.evaluateExpression = function evaluateExpression(expression) {
 
 Parser.prototype.parseString = function parseString(expression) {
   switch(expression.type) {
-    case "BinaryExpression":
-      if(expression.operator === "+")
+    case 'BinaryExpression':
+      if(expression.operator === '+')
         return this.parseString(expression.left) + this.parseString(expression.right);
       break;
-    case "Literal":
-      return expression.value + "";
+    case 'Literal':
+      return expression.value + '';
   }
-  throw new Error(expression.type + " is not supported as parameter for require");
+  throw new Error(expression.type + ' is not supported as parameter for require');
 };
 
 Parser.prototype.parseCalculatedString = function parseCalculatedString(expression) {
   switch(expression.type) {
-    case "BinaryExpression":
-      if(expression.operator === "+") {
+    case 'BinaryExpression':
+      if(expression.operator === '+') {
         var left = this.parseCalculatedString(expression.left);
         var right = this.parseCalculatedString(expression.right);
         if(left.code) {
@@ -980,7 +980,7 @@ Parser.prototype.parseCalculatedString = function parseCalculatedString(expressi
         }
       }
       break;
-    case "ConditionalExpression":
+    case 'ConditionalExpression':
       var consequent = this.parseCalculatedString(expression.consequent);
       var alternate = this.parseCalculatedString(expression.alternate);
       var items = [];
@@ -995,26 +995,26 @@ Parser.prototype.parseCalculatedString = function parseCalculatedString(expressi
         items.push(alternate);
       else break;
       return {
-        value: "",
+        value: '',
         code: true,
         conditional: items
       };
-    case "Literal":
+    case 'Literal':
       return {
         range: expression.range,
-        value: expression.value + ""
+        value: expression.value + ''
       };
   }
   return {
-    value: "",
+    value: '',
     code: true
   };
 };
 
-["parseString", "parseCalculatedString"].forEach(function(fn) {
-  Parser.prototype[fn + "Array"] = function parseXXXArray(expression) {
+['parseString', 'parseCalculatedString'].forEach(function(fn) {
+  Parser.prototype[fn + 'Array'] = function parseXXXArray(expression) {
     switch(expression.type) {
-      case "ArrayExpression":
+      case 'ArrayExpression':
         var arr = [];
         if(expression.elements)
           expression.elements.forEach(function(expr) {
@@ -1030,18 +1030,18 @@ var POSSIBLE_AST_OPTIONS = [{
   ranges: true,
   locations: true,
   ecmaVersion: 6,
-  sourceType: "module"
+  sourceType: 'module'
 }, {
   ranges: true,
   locations: true,
   ecmaVersion: 6,
-  sourceType: "script"
+  sourceType: 'script'
 }]
 
 Parser.prototype.parse = function parse(ast, initialState) {
    
-  if(!ast || typeof ast !== "object")
-    throw new Error("Source couldn't be parsed");
+  if(!ast || typeof ast !== 'object')
+    throw new Error('Source couldn\'t be parsed');
   var oldScope = this.scope;
   var oldState = this.state;
   this.scope = {
@@ -1050,7 +1050,7 @@ Parser.prototype.parse = function parse(ast, initialState) {
     renames: {}
   };
   var state = this.state = initialState || {};
-  if(this.applyPluginsBailResult("program", ast) === undefined)
+  if(this.applyPluginsBailResult('program', ast) === undefined)
     this.walkStatements(ast.body);
   this.scope = oldScope;
   this.state = oldState;
@@ -1058,15 +1058,15 @@ Parser.prototype.parse = function parse(ast, initialState) {
 };
 
 Parser.prototype.evaluate = function evaluate(source) {
-  var ast = acorn.parse("(" + source + ")", {
+  var ast = acorn.parse('(' + source + ')', {
     ranges: true,
     locations: true,
     ecmaVersion: 6,
-    sourceType: "module"
+    sourceType: 'module'
   });
-  if(!ast || typeof ast !== "object" || ast.type !== "Program")
-    throw new Error("evaluate: Source couldn't be parsed");
-  if(ast.body.length !== 1 || ast.body[0].type !== "ExpressionStatement")
-    throw new Error("evaluate: Source is not a expression");
+  if(!ast || typeof ast !== 'object' || ast.type !== 'Program')
+    throw new Error('evaluate: Source couldn\'t be parsed');
+  if(ast.body.length !== 1 || ast.body[0].type !== 'ExpressionStatement')
+    throw new Error('evaluate: Source is not a expression');
   return this.evaluateExpression(ast.body[0].expression);
 };
