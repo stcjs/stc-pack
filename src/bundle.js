@@ -77,6 +77,7 @@ class EntryBundle extends Bundle {
   _wrap(content) {
     var module = this.rootModule;
     if(module.isEntry && ModuleManager.isModuleDependenciesReady(module)) {
+      console.log('entry module is ready');
       return content + templates.bootstrap;
     }
     return content;
@@ -93,7 +94,6 @@ class ChainBundle extends Bundle {
     for(var moduleId in bundle.modules) {
       this.modules[moduleId] = bundle.modules[moduleId];
     }
-    bundle.parents.push
   }
 
   handleAddModule(module) {

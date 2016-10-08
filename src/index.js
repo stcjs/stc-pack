@@ -69,8 +69,6 @@ export default class JSPackPlugin extends Plugin {
     this.setContent(module.content);
   }
 
- 
-
   combineEverything(modules) {
     modules.push(module);
 
