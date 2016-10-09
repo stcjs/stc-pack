@@ -1,19 +1,19 @@
 import Bundle from './bundle';
 import ModuleManager from './module-manager';
 class BundleManager {
-  bundleMap = {}
+  bundles = {}
 
   get(moduleId) {
-    return bundleMap[moduleId];
+    return this.bundles[moduleId];
   }
 
   addModule(module, rootIds, childrenIds) {
-    var bundleMap = this.bundleMap;
+    var bundles = this.bundles;
 
     // 把所有 module 分别合并到 root module 所在的 bundle 里面
     if(rootIds.length) {
       rootIds.forEach(rootId=>{
-        var parentBundle = bundleMap[rootId];
+        var parentBundle = bundles[rootId];
         if(parentBundle) {
           parentBundle.addModule(module);
 
@@ -32,9 +32,15 @@ class BundleManager {
     }
   }
 
+  onAfter() {
+    for(var id in this.bundles) {
+      this.bundles[id].onAfter();
+    }
+  }
+
   _mergeChildren(bundle, childrenIds) {
     childrenIds.forEach(childId=>{
-      var childBundle = this.bundleMap[childId];
+      var childBundle = this.bundles[childId];
       if(childBundle) {
         return bundle.mergeBundle(childBundle);
       } 
@@ -48,7 +54,7 @@ class BundleManager {
 
   _addBundle(module) {
     var bundle = Bundle.create(module);
-    this.bundleMap[module.id] = bundle;
+    this.bundles[module.id] = bundle;
     return bundle;
   }
 }

@@ -14,6 +14,10 @@ class ModuleManager {
     return this.counter;
   }
 
+  getPath(hash) {
+
+  }
+
   get(id) {
     return this.moduleMap[id];
   }
@@ -71,24 +75,31 @@ class ModuleManager {
     return module.dependencies.filter(d=>d.id !== undefined).map(d=>d.id);
   }
 
-  // 判断 module 的应用树是否加载完毕
-  isModuleDependenciesReady(module, idTrace=[]) {
+  _getChildren(module) {
+    return module.dependencies.filter(d=>d.id !== undefined);
+  }
+
+  // 检查 module 缺少的依赖
+  checkDependencies(module, idTrace=[], missing=[]) {
     // idTrace 一个是为了避免循环引用，还可以提高性能
     if(idTrace.indexOf(module.id) !== -1) {
-      return true;
+      return missing;
     }
     idTrace.push(module.id);
 
-    var ids = this.getChildrenIDs(module);
+    var children = this._getChildren(module);
     var dep;
-    for(var i in ids) {
-      dep = this.moduleMap[ids[i]];
-      if(!dep || !this.isModuleDependenciesReady(dep, idTrace)) {
-        // console.log('not ready', !dep ? ('模块找不到 ' + ids[i]): ('模块依赖不全 ' + ids.join()));
-        return false;
+    for(var i in children) {
+      var id = children[i].id;
+      dep = this.moduleMap[id];
+
+      if(dep) {
+        this.checkDependencies(dep, idTrace, missing);
+      } else {
+        missing.push({module, dep})
       }
     }
-    return true;
+    return missing;
   }
 }
 

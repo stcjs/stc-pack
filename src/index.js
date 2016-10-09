@@ -123,4 +123,12 @@ export default class JSPackPlugin extends Plugin {
   static cache(){
     return true;
   }
+
+  /**
+   * after all files processed
+   */
+  static after() {
+    console.log('----------------------处理完成--------------------');
+    BundleManager.onAfter();
+  }
 }

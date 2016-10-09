@@ -21,6 +21,11 @@ class Bundle {
     this.handleCreate(module);
   }
 
+  // 当所有文件都处理完了以后
+  onAfter() {
+    this.handleAfter();
+  }
+
   mergeBundle(bundle) {
     if(bundle.rootModule.isEntry) {
       throw new Error(`Can not merge entry bundle ${bundle.rootModule.path} into bundle ${this.rootModule.path}`);
@@ -67,21 +72,25 @@ class EntryBundle extends Bundle {
   }
 
   _writeContent(content) {
-    fs.writeFileSync(this._getOutputPath(), this._wrap(content));
+    fs.writeFileSync(this._getOutputPath(), content);
   }
 
   _appendContent(content) {
-    fs.appendFileSync(this._getOutputPath(), this._wrap(content));
+    fs.appendFileSync(this._getOutputPath(), content);
   }
 
-  _wrap(content) {
+  handleAfter() {
     var module = this.rootModule;
-    if(module.isEntry && ModuleManager.isModuleDependenciesReady(module)) {
-      console.log('entry module is ready');
-      return content + templates.bootstrap;
+    var missingModules = ModuleManager.checkDependencies(module);
+
+    var content = '';
+    var errorMessage = missingModules.map(e=>`Error: Couldn\'t found dependency ${e.dep.path} in file ${e.module.path}.`).join('\n');
+    if(errorMessage) {
+      content += templates.run(`console.error(\'${errorMessage}\');`);
     }
-    return content;
-  }
+    
+    this._appendContent(content + templates.bootstrap());    
+  } 
 }
 
 // 作为一个中间状态的 bundle，不会写入到文件中，能够与其它 bundle 合并
@@ -100,6 +109,10 @@ class ChainBundle extends Bundle {
     if(!this.modules[module.id]) {
       this.modules[module.id] = module;
     }
+  }
+
+  handleAfter() {
+
   }
 }
 

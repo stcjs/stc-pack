@@ -45,6 +45,9 @@ module.exports = {
       entryId = moduleId;
       return stcPack;
     },
+    run: function() {
+      return stcPack;
+    },
     bootstrap: function() {
       stc_pack_require(entryId);
     }
@@ -52,10 +55,15 @@ module.exports = {
   return stcPack;
 })()`,
   entry: function(path, content) {
-    return `\n.entry("${path}", function(exports, module, require) {\n ${content} \n})`
+    return `\n.entry("${path}", function(exports, module, require) {\n ${content} \n})`;
   },
   add: function(path, content) {
-    return `\n.add("${path}", function(exports, module, require) {\n ${content} \n})`   
+    return `\n.add("${path}", function(exports, module, require) {\n ${content} \n})`;
   },
-  bootstrap: '.bootstrap();'
+  run: function(content) {
+    return `\n.run((function(){\n${content}\n})()})`;
+  },
+  bootstrap: function() {
+    return '.bootstrap();';
+  }
 }
