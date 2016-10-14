@@ -1,8 +1,16 @@
 ## stc-pack
 
+### 2016/10/10 ~ 2016/10/14
+实现添加打包 node_modules 依赖文件，考虑了很多思路最后终于实现出来了。
+添加了 Resolve 的单元测试，javascript 调试困难的根本解决途径，能省掉大量，大量的调试时间。
+发现一个新的问题，需要分析和解决 variable 的依赖问题，variable 比如说在 browser 端使用 process global 或者 全局变量想 Jquery 等等的时候，由于打包后代码是相对独立的，需要去注入这些个变量，具体时间等周末吧。
+
 ### 2016/10/9
 * 当所有文件处理完后，分析文件的依赖是否都加载完整，并给出错误提示。原来这块逻辑会在每一次 entry bundle 合并（或创建）的时候执行来保证添加 bootstrap 代码，会造成很多重复的计算，后来发现 stc 提供了 after hook 就把逻辑顺利成章的挪到这里了。需要提出的是虽然 after hook 是静态函数，但还是在 master 进程上执行，BundleManager 和 ModuleManager 单例的内容同样能访问到。
 
+* 循环引用的 bug 继续修复，之前的 deleted-bundle 逻辑被推翻，改用的思路是： 每次合并的目标 Bundle 是沿着依赖树向根部找到最顶级（可能有多个），或者沿着子级的第一级，这个有点像‘冒泡’合并方法，每个module 或者 bundle 都在尽力的向上（entry bundle) 合并，一般的 bundle 在合并过程中，只是记录了不重复的依赖的 module， 而 entry bundle 会直接往文件里面 append 合并过来的内容。
+
+* 如果编译确实文件，给出错误提示。
 
 ### 2016/10/8  
 

@@ -25,6 +25,7 @@ function Compiler() {
 Compiler.prototype = Object.create(Tapable.prototype);
 Compiler.prototype.constructor = Compiler;
 Compiler.prototype.compileModule = function(path, content, options) {
+ 
   path = Path.normalize(path);
   var isEntry = false;
   for(var entry in options.entry) {
@@ -41,8 +42,13 @@ Compiler.prototype.compileModule = function(path, content, options) {
     content,
     isEntry
   };
+  try {
   // 利用 webpack 功能得出依赖
   this.parser.parse(content, this);
+  } catch(e) {
+    console.log(`process file ${path}`);
+    throw e;
+  }
 
 
   function replaceRange(s, start, end, substitute) {
@@ -56,8 +62,10 @@ Compiler.prototype.compileModule = function(path, content, options) {
     if(!d.request) {
       return;
     }
-    var absPath = Resolve(path, d.request);
+    var result = Resolve(path, d.request, options);
+    var absPath = result.path;
     d.path = absPath;
+    d.needToInvokeSelf = result.needToInvokeSelf;
     module.content = replaceRange(module.content, d.range[0] + startOffset, d.range[1] + endOffset, absPath);
     var offset = absPath.length - d.range[1] + d.range[0] + 2;
     startOffset += offset;

@@ -1,8 +1,10 @@
+import Serializer from 'circular-json';
+import path from 'path';
 class ModuleManager {
   pathMap = {}
-  moduleMap = {}
+  modules = {}
   counter = 0
-  parentsModuleMap = {}
+  parentModules = {}
 
   getPathHash(path) {
     var match = this.pathMap[path];
@@ -19,30 +21,34 @@ class ModuleManager {
   }
 
   get(id) {
-    return this.moduleMap[id];
+    return this.modules[id];
   }
 
-  add(module) {
+  add(serializedModule) {
+
+    // module 里面包含的文件路径，引用的模块，引用的需要分块的模块
+    let module = Serializer.parse(serializedModule);
     module.id = this.getPathHash(module.path);
     
     // 构建 module 的 map， 方便按照路径查询
-    this.moduleMap[module.id] = module;
+    this.modules[module.id] = module;
 
-    console.log(`加载模块 ${module.id} ${module.path}`);
+    // console.log(`处理${module.isEntry ? '入口' : '模块'} ${module.id} ${module.path}`);
 
     // 构建 module 的 被引用 map， 方便按照路径查询被谁引用
     module.dependencies.forEach(dependency=>{
       if(dependency.path) {
         dependency.id = this.getPathHash(dependency.path);
-        var parents = this.parentsModuleMap[dependency.id];
+        var parents = this.parentModules[dependency.id];
         if(!parents) {
-          this.parentsModuleMap[dependency.id] = parents = [];
+          this.parentModules[dependency.id] = parents = [];
         }
         if(parents.indexOf(module) === -1) {
           parents.push(module);
         }
       }
     });
+
     return module;
   }
 
@@ -55,7 +61,7 @@ class ModuleManager {
 
     idTrace.push(module.id);
 
-    var parents = (this.parentsModuleMap[module.id] || []).filter(p=>idTrace.indexOf(p.id) === -1);
+    var parents = (this.parentModules[module.id] || []).filter(p=>idTrace.indexOf(p.id) === -1);
 
     // 没有父亲，当前就是（其中）一个根模块
     if(parents.length === 0) {
@@ -72,6 +78,7 @@ class ModuleManager {
   }
 
   getChildrenIDs(module) {
+
     return module.dependencies.filter(d=>d.id !== undefined).map(d=>d.id);
   }
 
@@ -91,12 +98,12 @@ class ModuleManager {
     var dep;
     for(var i in children) {
       var id = children[i].id;
-      dep = this.moduleMap[id];
+      dep = this.modules[id];
 
       if(dep) {
         this.checkDependencies(dep, idTrace, missing);
       } else {
-        missing.push({module, dep})
+        missing.push({module, dep: children[i]});
       }
     }
     return missing;

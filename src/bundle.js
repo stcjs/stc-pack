@@ -1,6 +1,7 @@
 import fs from 'fs';
 import Path from 'path';
 import templates from './templates';
+import thinkit from 'thinkit/lib/index';
 import ModuleManager from './module-manager';
 class Bundle {
   static create(module) {
@@ -30,6 +31,7 @@ class Bundle {
     if(bundle.rootModule.isEntry) {
       throw new Error(`Can not merge entry bundle ${bundle.rootModule.path} into bundle ${this.rootModule.path}`);
     }
+    // console.log('mergeBundle ' + bundle.rootModule.path);
     this.handleMergeBundle(bundle);
   }
 
@@ -72,7 +74,13 @@ class EntryBundle extends Bundle {
   }
 
   _writeContent(content) {
-    fs.writeFileSync(this._getOutputPath(), content);
+    var outputPath = this._getOutputPath();
+    var dir = Path.dirname(outputPath);
+    if(!thinkit.isDir(dir)){
+      thinkit.mkdir(dir);
+    }    
+    
+    fs.writeFileSync(outputPath, content);
   }
 
   _appendContent(content) {
@@ -82,13 +90,11 @@ class EntryBundle extends Bundle {
   handleAfter() {
     var module = this.rootModule;
     var missingModules = ModuleManager.checkDependencies(module);
-
     var content = '';
-    var errorMessage = missingModules.map(e=>`Error: Couldn\'t found dependency ${e.dep.path} in file ${e.module.path}.`).join('\n');
+    var errorMessage = missingModules.map(e=>`\n Error: Couldn\'t found dependency "${e.dep.path}" in file "${e.module.path}".`).join();
     if(errorMessage) {
       content += templates.run(`console.error(\'${errorMessage}\');`);
     }
-    
     this._appendContent(content + templates.bootstrap());    
   } 
 }
