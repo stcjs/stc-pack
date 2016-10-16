@@ -1,9 +1,7 @@
 import Plugin from 'stc-plugin';
-import {extend} from 'stc-helper';
 import Compiler from './compiler';
 import log from './log';
 import Serializer from 'circular-json';
-import Resolve from './resolve';
 import BundleManager from './bundle-manager';
 import ModuleManager from './module-manager';
 import fs from 'fs';
@@ -52,7 +50,7 @@ export default class JSPackPlugin extends Plugin {
     }
 
     let module = ModuleManager.add(serializedModule);
-       
+
 
 
     log(module, 'appendFile');

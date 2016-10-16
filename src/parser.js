@@ -4,6 +4,7 @@
 */
 var Tapable = require('tapable');
 var BasicEvaluatedExpression = require('./basic-evaluated-expression');
+var acorn = require('acorn');
 
 function Parser(options) {
   Tapable.call(this);
@@ -1026,20 +1027,20 @@ Parser.prototype.parseCalculatedString = function parseCalculatedString(expressi
   };
 });
 
-var POSSIBLE_AST_OPTIONS = [{
-  ranges: true,
-  locations: true,
-  ecmaVersion: 6,
-  sourceType: 'module'
-}, {
-  ranges: true,
-  locations: true,
-  ecmaVersion: 6,
-  sourceType: 'script'
-}]
+// var POSSIBLE_AST_OPTIONS = [{
+//   ranges: true,
+//   locations: true,
+//   ecmaVersion: 6,
+//   sourceType: 'module'
+// }, {
+//   ranges: true,
+//   locations: true,
+//   ecmaVersion: 6,
+//   sourceType: 'script'
+// }]
 
 Parser.prototype.parse = function parse(ast, initialState) {
-   
+
   if(!ast || typeof ast !== 'object')
     throw new Error('Source couldn\'t be parsed');
   var oldScope = this.scope;

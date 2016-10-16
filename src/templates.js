@@ -1,5 +1,5 @@
-module.exports = { 
-  DI: 
+module.exports = {
+  DI:
 `(function() {
   var installedModules = {};
   var modules = {};
@@ -13,7 +13,7 @@ module.exports = {
 
   function stc_pack_require(moduleId) {
     var m = installedModules[moduleId];
-  
+
     // Check if module is in cache
     if(m) {
       return m.exports;

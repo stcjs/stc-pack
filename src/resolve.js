@@ -3,7 +3,7 @@ const fs = require('fs');
 const thinkit = require('thinkit');
 
 const packageMainCache = {};
- 
+
 function readPackage(requestPath) {
   if (packageMainCache.hasOwnProperty(requestPath)) {
     return packageMainCache[requestPath];
@@ -30,7 +30,7 @@ function tryPackage(dir, nodeModule) {
 
   do {
     var temp = path.resolve(dir, '..');
-    if(temp == dir) {
+    if(temp === dir) {
       return false;
     }
     dir = temp;
@@ -43,16 +43,16 @@ function tryPackage(dir, nodeModule) {
 }
 
 function tryNodeModule(dir, nodeModule) {
-  var pkg, requestModule;
+  var requestModule;
   do {
     var temp = path.resolve(dir, '..');
-    if(temp == dir) {
+    if(temp === dir) {
       return false;
     }
     dir = temp;
     requestModule = path.resolve(dir, 'node_modules', nodeModule);
   } while (!thinkit.isDir(requestModule))
- 
+
   return requestModule;
 }
 
@@ -82,14 +82,14 @@ function resolveAlias(requestPath, options) {
   return false;
 }
 
-function resolveNodeModule(filePath, requestPath, options) {
+function resolveNodeModule(filePath, requestPath) {
   filePath = path.dirname(filePath);
   // 得从 package.json 取文件
   var slashIndex = requestPath.indexOf('/');
   var nodeModule = requestPath;
   var nodeModuleRest = '';
 
-  if(slashIndex === -1) { 
+  if(slashIndex === -1) {
     // 解析模块 package.json 里面的 main 文件
     return tryPackage(filePath, nodeModule);
   }
@@ -102,7 +102,7 @@ function resolveNodeModule(filePath, requestPath, options) {
     return false;
   }
   var result = path.resolve(result, nodeModuleRest);
-  
+
   return resolveRelative(result, '');
 }
 
@@ -111,7 +111,7 @@ function resolve(filePath, requestPath, options) {
   if(typeof requestPath !== 'string') {
     throw new Error('resolve path must be string');
   }
-  
+
   if(requestPath[0] === '.') {
     result = resolveRelative(path.dirname(filePath), requestPath);
   } else {

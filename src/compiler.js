@@ -9,7 +9,7 @@ function Compiler() {
 
 
   // for webpack
-  var parser = this.parser = new Parser({});
+  this.parser = new Parser({});
   this.current = {};
 
   this.current.addDependency = (dep)=> {
@@ -19,13 +19,13 @@ function Compiler() {
     this.module.blocks.push(dep);
   };
   this.options = {};
-  
+
   this.resolvers = {normal: function(){}};
 }
 Compiler.prototype = Object.create(Tapable.prototype);
 Compiler.prototype.constructor = Compiler;
 Compiler.prototype.compileModule = function(path, content, options) {
- 
+
   path = Path.normalize(path);
   var isEntry = false;
   for(var entry in options.entry) {

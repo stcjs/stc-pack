@@ -20,6 +20,6 @@ var log = function(content, method = 'writeFile') {
   fs[method]('./debug.js', content);
 }
 log.clear = function() {
-  fs.wriateFile('./debug.js', ''); 
+  fs.wriateFile('./debug.js', '');
 }
 module.exports = log;

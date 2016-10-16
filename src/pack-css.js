@@ -1,6 +1,4 @@
 import Plugin from 'stc-plugin';
-import {extend} from 'stc-helper';
-import Path from 'path';
 
 export default class JSPackPlugin extends Plugin {
   /**

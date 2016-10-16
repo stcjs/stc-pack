@@ -1,5 +1,5 @@
 import Serializer from 'circular-json';
-import path from 'path';
+
 class ModuleManager {
   pathMap = {}
   modules = {}
@@ -16,10 +16,6 @@ class ModuleManager {
     return this.counter;
   }
 
-  getPath(hash) {
-
-  }
-
   get(id) {
     return this.modules[id];
   }
@@ -29,7 +25,7 @@ class ModuleManager {
     // module 里面包含的文件路径，引用的模块，引用的需要分块的模块
     let module = Serializer.parse(serializedModule);
     module.id = this.getPathHash(module.path);
-    
+
     // 构建 module 的 map， 方便按照路径查询
     this.modules[module.id] = module;
 

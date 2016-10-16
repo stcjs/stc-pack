@@ -44,7 +44,7 @@ class BundleManager {
       var childBundle = this.bundles[childId];
       if(childBundle) {
         return bundle.mergeBundle(childBundle);
-      } 
+      }
 
       var childModule = ModuleManager.get(childId);
       if(childModule) {
