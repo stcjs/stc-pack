@@ -123,7 +123,7 @@ function resolve(filePath, requestPath, options) {
   }
 
   if(!result) {
-    console.error(`${filePath} ${requestPath} ${result} can not found`);
+    // console.error(`${filePath} ${requestPath} ${result} can not found`);
   }
   return {path: result, needToInvokeSelf};
 }

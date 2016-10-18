@@ -30,6 +30,7 @@ export default class JSPackPlugin extends Plugin {
   async run(){
     let content = await this.getContent('utf8');
     var compiler = new Compiler();
+
     compiler.apply(
       new CompatibilityPlugin(),
       new LoaderPlugin(),
@@ -63,7 +64,7 @@ export default class JSPackPlugin extends Plugin {
 
 
 
-    log(module, 'appendFile');
+    // log(module, 'appendFile');
     // for(let module of modules) {
       // 向上递归引用链，找到自己的根 （文件），根一定对于一个 bundle 对象，todo 除非是循环引用的某些情况
       var parentIDs = ModuleManager.getRootParentIDs(module);
