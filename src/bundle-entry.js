@@ -3,7 +3,7 @@ import Path from 'path';
 import templates from './templates';
 import thinkit from 'thinkit/lib/index';
 import ModuleManager from './module-manager';
-import Bundle from './entry-bundle';
+import Bundle from './bundle';
 
 
 export default class EntryBundle extends Bundle {

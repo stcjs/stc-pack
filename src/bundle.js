@@ -1,15 +1,7 @@
-import EntryBundle from './bundle-entry';
-import ChainBundle from './bundle-chain';
+
 
 // bundle 的接口，具体实现看 bundles 里面的对象
 class Bundle {
-  static create(module) {
-    if(module.isEntry) {
-      return new EntryBundle(module);
-    }
-    return new ChainBundle(module);
-  }
-
   constructor(module) {
     // bundle's rootModule is immutable, immutable, immutable.
     this.rootModule = module;

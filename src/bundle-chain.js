@@ -1,4 +1,4 @@
-import Bundle from './bundles/bundle';
+import Bundle from './bundle';
 
 // 作为一个中间状态的 bundle，不会写入到文件中，能够与其它 bundle 合并
 export default class ChainBundle extends Bundle {

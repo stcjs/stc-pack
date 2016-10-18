@@ -55,6 +55,10 @@ Compiler.prototype.compileModule = function(path, content, options) {
     return s.substring(0, start) + substitute + s.substring(end);
   }
 
+  if(module.path.indexOf('style2.css') > 0) {
+    console.log(module);
+  }
+
   var startOffset = 1;
   var endOffset = -1;
   // 替换相对路径为绝对路径
@@ -66,6 +70,7 @@ Compiler.prototype.compileModule = function(path, content, options) {
     var absPath = result.path;
     d.path = absPath;
     d.needToInvokeSelf = result.needToInvokeSelf;
+    // console.log(d.path, ' ', d.needToInvokeSelf);
     module.content = replaceRange(module.content, d.range[0] + startOffset, d.range[1] + endOffset, absPath);
     var offset = absPath.length - d.range[1] + d.range[0] + 2;
     startOffset += offset;

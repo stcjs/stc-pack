@@ -33,6 +33,7 @@
 ## 计划与目标
 * （优先）解决 variable 的依赖问题，variable 比如说在 browser 端使用 process global 或者 全局变量 Jquery $ _ 等等的时候（虽然不推荐）
 * （优先）实现 webpack-css-loader 的适配。
+* 如果在 css 里面使用 @import 或者 url() , 这个处理逻辑是否按照 webpack 一样，还是转移到 transpile 流程里面。
 * 支持代码分块。
 * 让分块代码跑起来。
 * 把依赖提前检查并抛出异常。

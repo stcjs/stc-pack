@@ -5,15 +5,21 @@ import Serializer from 'circular-json';
 import BundleManager from './bundle-manager';
 import ModuleManager from './module-manager';
 import fs from 'fs';
-// import DependencyParser  from './dependency/CommonJsRequireDependencyParserPlugin';
-// var LoaderPlugin = require('./lib/dependencies/LoaderPlugin');
-var CommonJsPlugin = require('webpack/lib/dependencies/CommonJsPlugin');
-// var HarmonyModulesPlugin = require('./lib/dependencies/HarmonyModulesPlugin');
-// var SystemPlugin = require('./lib/dependencies/SystemPlugin');
-var AMDPlugin = require('webpack/lib/dependencies/AMDPlugin');
-// var RequireContextPlugin = require('./lib/dependencies/RequireContextPlugin');
-var RequireEnsurePlugin = require('webpack/lib/dependencies/RequireEnsurePlugin');
-// var RequireIncludePlugin = require('./lib/dependencies/RequireIncludePlugin');
+
+var APIPlugin = require("webpack/lib/APIPlugin");
+var ConstPlugin = require("webpack/lib/ConstPlugin");
+var RequireJsStuffPlugin = require("webpack/lib/RequireJsStuffPlugin");
+var NodeStuffPlugin = require("webpack/lib/NodeStuffPlugin");
+var CompatibilityPlugin = require("webpack/lib/CompatibilityPlugin");
+// var DefinePlugin = require("./DefinePlugin");
+
+var LoaderPlugin = require("webpack/lib/dependencies/LoaderPlugin");
+var CommonJsPlugin = require("webpack/lib/dependencies/CommonJsPlugin");
+var AMDPlugin = require("webpack/lib/dependencies/AMDPlugin");
+var RequireContextPlugin = require("webpack/lib/dependencies/RequireContextPlugin");
+var RequireEnsurePlugin = require("webpack/lib/dependencies/RequireEnsurePlugin");
+var RequireIncludePlugin = require("webpack/lib/dependencies/RequireIncludePlugin");
+
 
 
 const addedFiles = {};
@@ -25,14 +31,18 @@ export default class JSPackPlugin extends Plugin {
     let content = await this.getContent('utf8');
     var compiler = new Compiler();
     compiler.apply(
-      // new LoaderPlugin(),
-      // new RequireIncludePlugin(),
-      new RequireEnsurePlugin({}),
-      // new RequireContextPlugin(options.resolve.modules, options.resolve.extensions),
+      new CompatibilityPlugin(),
+      new LoaderPlugin(),
+      new NodeStuffPlugin({}),
+      new RequireJsStuffPlugin(),
+      new APIPlugin(),
+      new ConstPlugin(),
+      // new UseStrictPlugin(),
+      new RequireIncludePlugin(),
+      new RequireEnsurePlugin(),
+      new RequireContextPlugin({}, {}),
       new AMDPlugin({}, {}),
-      new CommonJsPlugin({}),
-      // new HarmonyModulesPlugin(options.module),
-      // new SystemPlugin(options.module)
+      new CommonJsPlugin({})
     );
     var module = compiler.compileModule(this.file.path, content, this.options);
 
