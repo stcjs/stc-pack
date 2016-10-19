@@ -1,4 +1,4 @@
-import Serializer from 'circular-json';
+// import Serializer from 'circular-json';
 
 class ModuleManager {
   pathMap = {}
@@ -23,13 +23,11 @@ class ModuleManager {
   add(serializedModule) {
 
     // module 里面包含的文件路径，引用的模块，引用的需要分块的模块
-    let module = Serializer.parse(serializedModule);
+    let module = JSON.parse(serializedModule);
     module.id = this.getPathHash(module.path);
 
     // 构建 module 的 map， 方便按照路径查询
     this.modules[module.id] = module;
-
-    // console.log(`处理${module.isEntry ? '入口' : '模块'} ${module.id} ${module.path}`);
 
     // 构建 module 的 被引用 map， 方便按照路径查询被谁引用
     module.dependencies.forEach(dependency=>{

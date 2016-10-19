@@ -27,17 +27,16 @@
 * Bundle 这块的逻辑还有不少漏洞，表现在如果模块 m1 和 m2 都依赖模块 m3， 模块 m3 依赖模块 m4，程序会为每一个模块生成一个 bundle（b1, b2, b3, b4)并向上合并，合并完了会删除自己（，当 如果 m4 最后处理发现 m3 已经合并 m1 和 m2 中，系统报找不到 bundle 3. 要解决这个问题，就不能删除合并了的bundle， 而是把这个 bundle 做成一个 delegated-bundle, 把所有往 delegated-bundle 合并的操作代理到它的父级 bundle。
 * 优化 bundle 文件合并时的性能，对非入口文件不再生成文件。
 * 当所有文件处理完后，分析文件的依赖是否都加载完整，并给出错误提示。原来这一步会在每一次 entry bundle 合并（或创建）的时候执行，会造成很多重复的计算，后来发现 stc 提供了 after hook 就把逻辑顺利成章的挪到这里了。
-
 * （优先）处理引用 node_modules 模块的情况（如何添加一个虚拟的只在内存中的文件）。
+* （优先）实现 webpack-css-loader 的适配。
 
 ## 计划与目标
 * （优先）解决 variable 的依赖问题，variable 比如说在 browser 端使用 process global 或者 全局变量 Jquery $ _ 等等的时候（虽然不推荐）
-* （优先）实现 webpack-css-loader 的适配。
 * 如果在 css 里面使用 @import 或者 url() , 这个处理逻辑是否按照 webpack 一样，还是转移到 transpile 流程里面。
 * 支持代码分块。
 * 让分块代码跑起来。
 * 把依赖提前检查并抛出异常。
-* stc 实现自己的 AST walker， stc-pack 放弃 webpack 的 Parser 获取更好的系统兼容性。
+* (开发中)stc 实现自己的 AST walker， stc-pack 放弃 webpack 的 Parser 获取更好的系统兼容性。
 * 建立单元测试。
 * 实现 source map。
 * 把最后生成代码的文件路径替换成module id，这样能减少文件大小，对性能也有一定的提高。

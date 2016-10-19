@@ -1,11 +1,12 @@
 import traverse from 'babel-traverse';
 import * as t from "babel-types";
-// import genertor from 'babel-generator';
 
 export default class DependencyList extends Array{
-  static fromAst({ast, code}) {
+  static fromAst(ast) {
     var list = new DependencyList();
+
     traverse(ast, {
+      noScope: true,
       CallExpression(path) {
         var c = path.node.callee;
         var a = path.node.arguments;
@@ -19,12 +20,14 @@ export default class DependencyList extends Array{
         }
       },
       ImportDeclaration(path) {
-        if()
-
+        var source = path.node.source;
+        list.push({
+          request: source.value,
+          start: source.start,
+          end: source.end
+        })
       }
     });
-
-    console.log(list);
     return list;
   }
 }

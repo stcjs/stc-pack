@@ -1,25 +1,9 @@
 import Plugin from 'stc-plugin';
-import Compiler from './compiler';
+import compile from './compile';
 import log from './log';
-import Serializer from 'circular-json';
 import BundleManager from './bundle-manager';
 import ModuleManager from './module-manager';
 import fs from 'fs';
-
-var APIPlugin = require("webpack/lib/APIPlugin");
-var ConstPlugin = require("webpack/lib/ConstPlugin");
-var RequireJsStuffPlugin = require("webpack/lib/RequireJsStuffPlugin");
-var NodeStuffPlugin = require("webpack/lib/NodeStuffPlugin");
-var CompatibilityPlugin = require("webpack/lib/CompatibilityPlugin");
-// var DefinePlugin = require("./DefinePlugin");
-
-var LoaderPlugin = require("webpack/lib/dependencies/LoaderPlugin");
-var CommonJsPlugin = require("webpack/lib/dependencies/CommonJsPlugin");
-var AMDPlugin = require("webpack/lib/dependencies/AMDPlugin");
-var RequireContextPlugin = require("webpack/lib/dependencies/RequireContextPlugin");
-var RequireEnsurePlugin = require("webpack/lib/dependencies/RequireEnsurePlugin");
-var RequireIncludePlugin = require("webpack/lib/dependencies/RequireIncludePlugin");
-
 
 
 const addedFiles = {};
@@ -29,25 +13,11 @@ export default class JSPackPlugin extends Plugin {
    */
   async run(){
     let content = await this.getContent('utf8');
-    var compiler = new Compiler();
+    let ast = await this.getAst();
 
-    compiler.apply(
-      new CompatibilityPlugin(),
-      new LoaderPlugin(),
-      new NodeStuffPlugin({}),
-      new RequireJsStuffPlugin(),
-      new APIPlugin(),
-      new ConstPlugin(),
-      // new UseStrictPlugin(),
-      new RequireIncludePlugin(),
-      new RequireEnsurePlugin(),
-      new RequireContextPlugin({}, {}),
-      new AMDPlugin({}, {}),
-      new CommonJsPlugin({})
-    );
-    var module = compiler.compileModule(this.file.path, content, this.options);
+    var module = compile(this.file.path, ast, content, this.options);
 
-    var serializedModule = Serializer.stringify(module);
+    var serializedModule = JSON.stringify(module);
     return {serializedModule};
   }
 
@@ -62,9 +32,6 @@ export default class JSPackPlugin extends Plugin {
 
     let module = ModuleManager.add(serializedModule);
 
-
-
-    // log(module, 'appendFile');
     // for(let module of modules) {
       // 向上递归引用链，找到自己的根 （文件），根一定对于一个 bundle 对象，todo 除非是循环引用的某些情况
       var parentIDs = ModuleManager.getRootParentIDs(module);
@@ -72,7 +39,6 @@ export default class JSPackPlugin extends Plugin {
       // 向下递归引用链，找到自己 module， 因为接下来需要找到自己 bundle 并合并
       var childrenIDs = ModuleManager.getChildrenIDs(module);
 
-      // console.log(module.path, module.id, parentIDs, childrenIDs);
       // 这个方法就是把 module 归入到 bundle 之中，同时把关联的 bundle 向上合并。
       // 注意： 这种方法是的顺序是不稳定， 因为是特别针对并行处理设计，什么时候处理了哪个文件并不知道。
       BundleManager.addModule(module, parentIDs, childrenIDs);

@@ -1,5 +1,14 @@
 ## stc-pack
 
+### 2016/10/19
+实现了 AST 的 walker 的基本功能，目前能解析 CJS 模块，加了一些单元测试，接下来准备解析像 global 这样的 windows 依赖，这个在 webpack 源码里面叫 Variable 的概念，目的是如果 Module 里面有这样的定义，需要用额外的闭包提供合适的 this 上下文
+(function(global){
+  //  module 代码
+})( (function(){return this;})())
+
+### 2016/10/18
+依赖着 webpack 的 Parser 非常的不方便，开始调研实现自己的 AST walker! STC 依赖 Babylon 提供了更多的可能，看了一些文档后发现 source map 的处理将来也会变得很麻烦。
+
 ### 2016/10/17
 css 可以打包并能成功添加到浏览器的里面了，截止目前，已经能打包并且运行程序。问题在于对全局对象的处理。比如 global，$ 等的处理
 
