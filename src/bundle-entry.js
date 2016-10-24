@@ -9,7 +9,7 @@ import Bundle from './bundle';
 export default class EntryBundle extends Bundle {
   handleCreate(module) {
     this.modules[module.id] = module;
-    var content = templates.DI + templates.entry(module.path, module.content);
+    var content = templates.DI + templates.entry(module);
     this._writeContent(content);
   }
 
@@ -20,7 +20,7 @@ export default class EntryBundle extends Bundle {
       if(!this.modules[moduleId]) {
         module = bundle.modules[moduleId]
         this.modules[moduleId] = module;
-        content += templates.add(module.path, module.content);
+        content += templates.add(module);
       }
     }
     this._appendContent(content);
@@ -29,7 +29,7 @@ export default class EntryBundle extends Bundle {
   handleAddModule(module) {
     if(!this.modules[module.id]) {
       this.modules[module.id] = module;
-      var content = templates.add(module.path, module.content);
+      var content = templates.add(module);
       this._appendContent(content);
     }
   }

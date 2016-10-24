@@ -27,7 +27,7 @@ export default class JSPackPlugin extends Plugin {
     var content = \`${css}\`;
     if(typeof content === 'string') content = [[module.id, content, '']];
     // add the styles to the DOM
-    var update = require(\`${addStylePath}\`)(content, {});
+    var update = require(\'${addStylePath.replace(/\\/g, '\\\\')}\')(content, {});
     if(content.locals) module.exports = content.locals;
 `
 

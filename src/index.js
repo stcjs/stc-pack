@@ -33,15 +33,15 @@ export default class JSPackPlugin extends Plugin {
     let module = ModuleManager.add(serializedModule);
 
     // for(let module of modules) {
-      // 向上递归引用链，找到自己的根 （文件），根一定对于一个 bundle 对象，todo 除非是循环引用的某些情况
-      var parentIDs = ModuleManager.getRootParentIDs(module);
+    // 向上递归引用链，找到自己的根 （文件），根一定对于一个 bundle 对象，todo 除非是循环引用的某些情况
+    var parentIDs = ModuleManager.getRootParentIDs(module);
 
-      // 向下递归引用链，找到自己 module， 因为接下来需要找到自己 bundle 并合并
-      var childrenIDs = ModuleManager.getChildrenIDs(module);
+    // 向下递归引用链，找到自己 module， 因为接下来需要找到自己 bundle 并合并
+    var childrenIDs = ModuleManager.getChildrenIDs(module);
 
-      // 这个方法就是把 module 归入到 bundle 之中，同时把关联的 bundle 向上合并。
-      // 注意： 这种方法是的顺序是不稳定， 因为是特别针对并行处理设计，什么时候处理了哪个文件并不知道。
-      BundleManager.addModule(module, parentIDs, childrenIDs);
+    // 这个方法就是把 module 归入到 bundle 之中，同时把关联的 bundle 向上合并。
+    // 注意： 这种方法是的顺序是不稳定， 因为是特别针对并行处理设计，什么时候处理了哪个文件并不知道。
+    BundleManager.addModule(module, parentIDs, childrenIDs);
     // }
 
     for(let dependency of module.dependencies) {
@@ -81,10 +81,5 @@ export default class JSPackPlugin extends Plugin {
    */
   static after() {
     BundleManager.onAfter();
-
-
-    // log(ModuleManager.modules);
-
-    console.log('----------------------合并结束--------------------');
   }
 }

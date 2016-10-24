@@ -12,7 +12,6 @@ class BundleManager {
   addModule(module, rootIds, childrenIds) {
     var bundles = this.bundles;
 
-    // console.log(module.id, rootIds,childrenIds);
     // 把所有 module 分别合并到 root module 所在的 bundle 里面
     if(rootIds.length) {
       rootIds.forEach(rootId=>{

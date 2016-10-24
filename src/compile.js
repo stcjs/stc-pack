@@ -1,6 +1,6 @@
 import Path from 'path';
 import Resolve from './resolve';
-import DependencyList from './dependency-list';
+import parse from './parse-ast';
 
 function compile(path, ast, content, options) {
 
@@ -14,8 +14,10 @@ function compile(path, ast, content, options) {
       break;
     }
   }
+  var {dependencies, variables} = parse(ast);
   var module =  {
-    dependencies: DependencyList.fromAst(ast),
+    dependencies,
+    variables,
     blocks: [],
     path,
     content,

@@ -2,6 +2,20 @@ import test from 'ava';
 import path from 'path';
 import resolve from '../lib/resolve';
 
+// 解析绝对路径
+test('resolve absolute requestPath', t => {
+  var r = resolve('root/file.js', require.resolve('./dependency-list.spec'));
+  t.is(r.path, path.normalize(require.resolve('./dependency-list.spec.js')));
+  t.is(r.needToInvokeSelf, true);
+});
+
+test('resolve absolute filePath', t => {
+  var {path, needToInvokeSelf} = resolve(require.resolve('./dependency-list.spec'), './dependency-list.spec');
+  t.is(path, require.resolve('./dependency-list.spec'));
+  t.is(needToInvokeSelf, true);
+});
+
+
 // 解析相对路径
 
 test('resolve relative default', t => {

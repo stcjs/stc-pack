@@ -6,6 +6,19 @@
   //  module 代码
 })( (function(){return this;})())
 
+AST 遍历的坑很多呀，简单的 global，要考虑下面这么多种情况
+1. global.a = 'value'; // 正常情况
+2. var global = {}; global.b = 222;  // 忽略
+3. global.b = 'value', function global() {}; // 忽略
+4. global.a = 'value', class global {}; // 忽略
+5. global.a = 'value', var global = {}; global.b = 222;  // 不能忽略
+6. global.a = 'value', function() { 模式3 和 模式4 如果出现在里面}// 不能忽略
+7. function() {global.a}; // 不能忽略 ？
+
+单元测试必不能少啊。
+官方建议最好把visitor 合并已获得最好的性能，但这样必然造成代码的维护性变差。这块需要好好实现一下。
+
+
 ### 2016/10/18
 依赖着 webpack 的 Parser 非常的不方便，开始调研实现自己的 AST walker! STC 依赖 Babylon 提供了更多的可能，看了一些文档后发现 source map 的处理将来也会变得很麻烦。
 

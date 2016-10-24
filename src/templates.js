@@ -54,11 +54,17 @@ module.exports = {
   };
   return stcPack;
 })()`,
-  entry: function(path, content) {
-    return `\n.entry("${path}", function(exports, module, require) {\n ${content} \n})`;
+  globalInject: function({variables, content}) {
+    if(variables.indexOf('global') !== -1) {
+      return `\n/*STC-PACK GLOBAL INJECT*/ (function(global) {\n${content}\n/*STC-PACK GLOBAL INJECT*/})((function(){ return this; })())`;
+    }
+    return content;
   },
-  add: function(path, content) {
-    return `\n.add("${path}", function(exports, module, require) {\n ${content} \n})`;
+  entry: function(module) {
+    return `\n.entry("${module.path}", function(exports, module, require) {\n${this.globalInject(module)}\n})`;
+  },
+  add: function(module) {
+    return `\n.add("${module.path}", function(exports, module, require) {\n${this.globalInject(module)}\n})`;
   },
   run: function(content) {
     return `\n.run((function(){\n${content}\n})()})`;

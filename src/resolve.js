@@ -91,7 +91,7 @@ function resolveNodeModule(filePath, requestPath) {
 
   if(slashIndex === -1) {
     // 解析模块 package.json 里面的 main 文件
-    return tryPackage(filePath, nodeModule);
+    return resolveRelative(tryPackage(filePath, nodeModule), '');
   }
 
   // 解析到向上的模块，然后把相对路径合并
@@ -107,12 +107,17 @@ function resolveNodeModule(filePath, requestPath) {
 }
 
 function resolve(filePath, requestPath, options) {
-  var result, needToInvokeSelf = path.isAbsolute(filePath);
+  var result, needToInvokeSelf;
+
   if(typeof requestPath !== 'string') {
     throw new Error('resolve path must be string');
   }
 
-  if(requestPath[0] === '.') {
+  // absolute
+  if(path.isAbsolute(requestPath)) {
+    result = resolveRelative(requestPath, '');
+    needToInvokeSelf = true;
+  } else if(requestPath[0] === '.') {
     result = resolveRelative(path.dirname(filePath), requestPath);
   } else {
     result = resolveAlias(requestPath, options);
@@ -125,6 +130,7 @@ function resolve(filePath, requestPath, options) {
   if(!result) {
     // console.error(`${filePath} ${requestPath} ${result} can not found`);
   }
+  needToInvokeSelf = needToInvokeSelf ||  path.isAbsolute(filePath);
   return {path: result, needToInvokeSelf};
 }
 
