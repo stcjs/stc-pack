@@ -56,12 +56,8 @@ function tryNodeModule(dir, nodeModule) {
   return requestModule;
 }
 
-function resolveRelative(filePath, requestPath) {
-  // 当前文件 相对路径
-  requestPath = path.join(filePath, requestPath);
-  if(thinkit.isDir(requestPath)) {
-    requestPath = path.join(requestPath, 'index.js');
-  } else if (requestPath.substr(-5) === '.scss') {
+function changeSuffix(requestPath) {
+  if (requestPath.substr(-5) === '.scss') {
     requestPath = requestPath.substr(0, requestPath.length - 5) + '.css.js';
   } else if (requestPath.substr(-4) === '.jsx') {
     requestPath = requestPath.substr(0, requestPath.length - 4) + '.js';
@@ -69,6 +65,24 @@ function resolveRelative(filePath, requestPath) {
     requestPath += '.js';
   }
   return requestPath;
+}
+
+function resolveRelative(filePath, requestPath) {
+  // 当前文件 相对路径
+  requestPath = path.join(filePath, requestPath);
+  if(thinkit.isDir(requestPath)) {
+    if(thinkit.isFile(requestPath)) {
+      return changeSuffix(requestPath);
+    }
+
+    if(thinkit.isFile(requestPath + '.js')) {
+      return requestPath + '.js';
+    }
+
+    return path.join(requestPath, 'index.js');
+  }
+
+  return changeSuffix(requestPath);
 }
 
 function resolveAlias(requestPath, options) {
@@ -91,7 +105,9 @@ function resolveNodeModule(filePath, requestPath) {
 
   if(slashIndex === -1) {
     // 解析模块 package.json 里面的 main 文件
-    return resolveRelative(tryPackage(filePath, nodeModule), '');
+    nodeModule = tryPackage(filePath, nodeModule);
+    if(!nodeModule) {return false;}
+    return resolveRelative(nodeModule, '');
   }
 
   // 解析到向上的模块，然后把相对路径合并
@@ -106,8 +122,12 @@ function resolveNodeModule(filePath, requestPath) {
   return resolveRelative(result, '');
 }
 
+function isCss(filePath) {
+  return filePath.substr(-7) === '.css.js';
+}
+
 function resolve(filePath, requestPath, options) {
-  var result, needToInvokeSelf;
+  var result, needToInvokeSelf, isAbsolute;
 
   if(typeof requestPath !== 'string') {
     throw new Error('resolve path must be string');
@@ -117,6 +137,7 @@ function resolve(filePath, requestPath, options) {
   if(path.isAbsolute(requestPath)) {
     result = resolveRelative(requestPath, '');
     needToInvokeSelf = true;
+    isAbsolute = true;
   } else if(requestPath[0] === '.') {
     result = resolveRelative(path.dirname(filePath), requestPath);
   } else {
@@ -126,12 +147,9 @@ function resolve(filePath, requestPath, options) {
       needToInvokeSelf = true;
     }
   }
-
-  if(!result) {
-    // console.error(`${filePath} ${requestPath} ${result} can not found`);
-  }
-  needToInvokeSelf = needToInvokeSelf ||  path.isAbsolute(filePath);
-  return {path: result, needToInvokeSelf};
+  isAbsolute = isAbsolute || path.isAbsolute(result || '');
+  needToInvokeSelf = !!result && (needToInvokeSelf ||  isAbsolute || isCss(result));
+  return {filePath: result, needToInvokeSelf, isAbsolute};
 }
 
-module.exports = resolve;
+module.exports = {resolve, isCss};

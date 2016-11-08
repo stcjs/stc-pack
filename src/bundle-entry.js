@@ -35,7 +35,7 @@ export default class EntryBundle extends Bundle {
   }
 
   _getOutputPath() {
-    var p = Path.join('output', this.rootModule.path.replace(/\.js$/, '.bundle.js'));
+    var p = Path.join('output', this.rootModule.filePath.replace(/\.js$/, '.bundle.js'));
     return p;
   }
 
@@ -57,7 +57,7 @@ export default class EntryBundle extends Bundle {
     var module = this.rootModule;
     var missingModules = ModuleManager.checkDependencies(module);
     var content = '';
-    var errorMessage = missingModules.map(e=>`\n Error: Couldn\'t found dependency "${e.dep.path}" in file "${e.module.path}".`).join();
+    var errorMessage = missingModules.map(e=>`\n Error: Couldn\'t found dependency "${e.dep.filePath}" in file "${e.module.filePath}".`).join();
     if(errorMessage) {
       content += templates.run(`console.error(\'${errorMessage}\');`);
     }

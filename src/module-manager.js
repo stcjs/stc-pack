@@ -24,15 +24,16 @@ class ModuleManager {
 
     // module 里面包含的文件路径，引用的模块，引用的需要分块的模块
     let module = JSON.parse(serializedModule);
-    module.id = this.getPathHash(module.path);
+    module.id = this.getPathHash(module.filePath);
 
+    // console.log('add module ' + module.id);
     // 构建 module 的 map， 方便按照路径查询
     this.modules[module.id] = module;
 
     // 构建 module 的 被引用 map， 方便按照路径查询被谁引用
     module.dependencies.forEach(dependency=>{
-      if(dependency.path) {
-        dependency.id = this.getPathHash(dependency.path);
+      if(dependency.filePath) {
+        dependency.id = this.getPathHash(dependency.filePath);
         var parents = this.parentModules[dependency.id];
         if(!parents) {
           this.parentModules[dependency.id] = parents = [];

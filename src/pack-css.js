@@ -1,5 +1,6 @@
 import Plugin from 'stc-plugin';
 import Path from 'path';
+import stcPack from './index';
 var addStylePath = require.resolve('style-loader/addStyles');
 export default class JSPackPlugin extends Plugin {
   /**
@@ -13,26 +14,26 @@ export default class JSPackPlugin extends Plugin {
   /**
    * update
    */
-  update(data){
+  async update(data){
 
-  let {err, css} = data;
-  if(err) {
-    return this.fatal(err.message, err.line, err.col);
-  }
+    let {err, css} = data;
+    if(err) {
+      return this.fatal(err.message, err.line, err.col);
+    }
 
-  var content = `
+    var content = `
     // style-loader: Adds some css to the DOM by adding a <style> tag
 
     // load the styles
-    var content = \`${css}\`;
+    var content = ${JSON.stringify(css)};
     if(typeof content === 'string') content = [[module.id, content, '']];
     // add the styles to the DOM
     var update = require(\'${addStylePath.replace(/\\/g, '\\\\')}\')(content, {});
-    if(content.locals) module.exports = content.locals;
-`
+    if(content.locals) module.exports = content.locals;`
 
-    this.addFile(this.file.path + '.js', content, false);
-    this.setContent(content);
+    let filepath = this.file.path + '.js';
+    this.addFile(filepath, content, true);
+    await this.invokePlugin(stcPack, filepath);
   }
   /**
    * default include
@@ -44,12 +45,12 @@ export default class JSPackPlugin extends Plugin {
    * use cluster
    */
   static cluster(){
-    return true;
+    return false;
   }
   /**
    * use cache
    */
   static cache(){
-    return true;
+    return false;
   }
 }

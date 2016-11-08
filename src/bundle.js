@@ -20,9 +20,8 @@ class Bundle {
 
   mergeBundle(bundle) {
     if(bundle.rootModule.isEntry) {
-      throw new Error(`Can not merge entry bundle ${bundle.rootModule.path} into bundle ${this.rootModule.path}`);
+      throw new Error(`Can not merge entry bundle ${bundle.rootModule.filePath} into bundle ${this.rootModule.filePath}`);
     }
-    // console.log('mergeBundle ' + bundle.rootModule.path);
     this.handleMergeBundle(bundle);
   }
 

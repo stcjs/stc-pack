@@ -1,7 +1,7 @@
 module.exports = {
   DI:
 `(function() {
-  var installedModules = {};
+  var installedModules = [];
   var modules = {};
 
   function add(moduleId, module) {
@@ -61,10 +61,10 @@ module.exports = {
     return content;
   },
   entry: function(module) {
-    return `\n.entry("${module.path}", function(exports, module, require) {\n${this.globalInject(module)}\n})`;
+    return `\n.entry(${module.id}, function(exports, module, require) {\n${this.globalInject(module)}\n})`;
   },
   add: function(module) {
-    return `\n.add("${module.path}", function(exports, module, require) {\n${this.globalInject(module)}\n})`;
+    return `\n.add(${module.id}, function(exports, module, require) {\n${this.globalInject(module)}\n})`;
   },
   run: function(content) {
     return `\n.run((function(){\n${content}\n})()})`;
