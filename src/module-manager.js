@@ -97,7 +97,7 @@ class ModuleManager {
 
       if(dep) {
         this.checkDependencies(dep, idTrace, missing);
-      } else {
+      } else if(!children[i].optional) {
         missing.push({module, dep: children[i]});
       }
     }

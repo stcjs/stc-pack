@@ -129,7 +129,11 @@ export default class JSPackPlugin extends Plugin {
 
     for(let dependency of module.dependencies) {
       let filePath = dependency.filePath;
-      if(dependency.needToInvokeSelf && !addedFiles[filePath]) {
+
+      if(!filePath && !dependency.optional) {
+        this.error(`dependency ${dependency.request} not found in ${module.filePath} optional ${dependency.optional}`);
+      }
+      if(filePath && dependency.needToInvokeSelf && !addedFiles[filePath]) {
         addedFiles[filePath] = true;
         if(isCss(filePath)) {
           let file;

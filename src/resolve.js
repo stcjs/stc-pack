@@ -11,12 +11,12 @@ function readPackage(requestPath) {
 
   const jsonPath = path.resolve(requestPath, 'package.json');
   if(!thinkit.isFile(jsonPath)) {
-    return false;
+    return '';
   }
   const json = fs.readFileSync(jsonPath);
 
   try {
-    var pkg = packageMainCache[requestPath] = JSON.parse(json).main;
+    var pkg = packageMainCache[requestPath] = JSON.parse(json).main || 'index.js';
   } catch (e) {
     e.path = jsonPath;
     e.message = 'Error parsing ' + jsonPath + ': ' + e.message;
@@ -26,34 +26,36 @@ function readPackage(requestPath) {
 }
 
 function tryPackage(dir, nodeModule) {
-  var pkg, requestModule;
+  var pkg, requestModule, temp;
 
-  do {
-    var temp = path.resolve(dir, '..');
-    if(temp === dir) {
-      return false;
-    }
-    dir = temp;
+  while(true) {
     requestModule = path.resolve(dir, 'node_modules', nodeModule);
     pkg = readPackage(requestModule);
-  } while (!pkg)
-
-  var filename = path.resolve(requestModule, pkg);
-  return filename;
+    if(pkg) {
+      return path.resolve(requestModule, pkg);
+    }
+    temp = path.resolve(dir, '..');
+    if(temp === dir) {
+      return '';
+    }
+    dir = temp;
+  }
 }
 
 function tryNodeModule(dir, nodeModule) {
-  var requestModule;
-  do {
-    var temp = path.resolve(dir, '..');
+  var requestModule, temp;
+  while(true) {
+    requestModule = path.resolve(dir, 'node_modules', nodeModule);
+    if(thinkit.isDir(requestModule)) {
+      return requestModule;
+    }
+
+    temp = path.resolve(dir, '..');
     if(temp === dir) {
-      return false;
+      return '';
     }
     dir = temp;
-    requestModule = path.resolve(dir, 'node_modules', nodeModule);
-  } while (!thinkit.isDir(requestModule))
-
-  return requestModule;
+  }
 }
 
 function changeSuffix(requestPath) {
@@ -93,7 +95,7 @@ function resolveAlias(requestPath, options) {
       return resolveRelative(alia + requestPath.substr(pattern.length), '');
     }
   }
-  return false;
+  return '';
 }
 
 function resolveNodeModule(filePath, requestPath) {
@@ -106,7 +108,9 @@ function resolveNodeModule(filePath, requestPath) {
   if(slashIndex === -1) {
     // 解析模块 package.json 里面的 main 文件
     nodeModule = tryPackage(filePath, nodeModule);
-    if(!nodeModule) {return false;}
+    if(!nodeModule) {
+      return '';
+    }
     return resolveRelative(nodeModule, '');
   }
 
@@ -115,7 +119,7 @@ function resolveNodeModule(filePath, requestPath) {
   nodeModuleRest = requestPath.substr(slashIndex + 1, requestPath.length -1);
   result = tryNodeModule(filePath, nodeModule);
   if(!result) {
-    return false;
+    return '';
   }
   var result = path.resolve(result, nodeModuleRest);
 

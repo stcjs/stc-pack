@@ -3,8 +3,16 @@ import traverse from 'babel-traverse';
 export default function(ast) {
   var dependencies = [];
   var variables = [];
+  var scope = {inTry: false, inBlock: false}
   traverse(ast, {
-    noScope: true,
+    TryStatement: {
+      enter() { scope.inTry = true; },
+      exit() { scope.inTry = false; }
+    },
+    BlockStatement: {
+      enter() { scope.inBlock = true; },
+      exit() { scope.inBlock = false; }
+    },
     CallExpression(path) {
       var c = path.node.callee;
       var a = path.node.arguments;
@@ -13,7 +21,8 @@ export default function(ast) {
         dependencies.push({
           request: a.value,
           start: a.start,
-          end: a.end
+          end: a.end,
+          optional: scope.inTry && scope.inBlock // in try block
         });
       }
     },
@@ -22,7 +31,8 @@ export default function(ast) {
       dependencies.push({
         request: source.value,
         start: source.start,
-        end: source.end
+        end: source.end,
+        optional: false
       })
     },
     AssignmentExpression(path) {

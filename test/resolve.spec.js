@@ -111,14 +111,14 @@ test('resolve node_modules package relative path', t => {
 
 test('resolve node_modules package not found', t => {
   let {filePath, needToInvokeSelf, isAbsolute} = resolve('root/file.js', 'unexistmodule', {alias: {b: 'aliasofa/somewhere'}});
-  t.is(filePath, false);
+  t.is(filePath, '');
   t.is(needToInvokeSelf, false);
   t.is(isAbsolute, false);
 });
 
 test('resolve node_modules package relative path', t => {
   let {filePath, needToInvokeSelf, isAbsolute} = resolve('root/file.js', 'unexistmodule/sjfkjsfkjs', {alias: {b: 'aliasofa/somewhere'}});
-  t.is(filePath, false);
+  t.is(filePath, '');
   t.is(needToInvokeSelf, false);
   t.is(isAbsolute, false);
 });

@@ -29,17 +29,24 @@
 * 当所有文件处理完后，分析文件的依赖是否都加载完整，并给出错误提示。原来这一步会在每一次 entry bundle 合并（或创建）的时候执行，会造成很多重复的计算，后来发现 stc 提供了 after hook 就把逻辑顺利成章的挪到这里了。
 * （优先）处理引用 node_modules 模块的情况（如何添加一个虚拟的只在内存中的文件）。
 * （优先）实现 webpack-css-loader 的适配。
+* （优先）解决 variable 的依赖问题，variable 比如说在 browser 端使用 process global 或者 全局变量 Jquery $ _ 等等的时候（虽然不推荐）
+* 建立单元测试。
+* 把最后生成代码的文件路径替换成module id，这样能减少文件大小，对性能也有一定的提高。
+* (开发中)stc 实现自己的 AST walker， stc-pack 放弃 webpack 的 Parser 获取更好的系统兼容性。
+
 
 ## 计划与目标
-* （优先）解决 variable 的依赖问题，variable 比如说在 browser 端使用 process global 或者 全局变量 Jquery $ _ 等等的时候（虽然不推荐）
 * 如果在 css 里面使用 @import 或者 url() , 这个处理逻辑是否按照 webpack 一样，还是转移到 transpile 流程里面。
 * 支持代码分块。
 * 让分块代码跑起来。
-* 把依赖提前检查并抛出异常。
-* (开发中)stc 实现自己的 AST walker， stc-pack 放弃 webpack 的 Parser 获取更好的系统兼容性。
-* 建立单元测试。
 * 实现 source map。
-* 把最后生成代码的文件路径替换成module id，这样能减少文件大小，对性能也有一定的提高。
+* 处理下面的逻辑，也就是要分析 require 是否在 try 的 scope 里面，如果是，这个依赖是可选择的。
+    try {
+      var index = require('indexof');
+    } catch (err) {
+      var index = require('component-indexof');
+    }
+
 
 ## 实现逻辑介绍
 项目用 AMD 或者 CMD 来声明依赖，而每个依赖的文件又会依赖其它的文件，最后就是一个依赖树，而树的根节点就是入口文件，也就是项目的启动是第一个执行的文件

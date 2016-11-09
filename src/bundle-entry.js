@@ -57,9 +57,9 @@ export default class EntryBundle extends Bundle {
     var module = this.rootModule;
     var missingModules = ModuleManager.checkDependencies(module);
     var content = '';
-    var errorMessage = missingModules.map(e=>`\n Error: Couldn\'t found dependency "${e.dep.filePath}" in file "${e.module.filePath}".`).join();
+    var errorMessage = missingModules.map(e=>`\n Error: Couldn\'t found dependency "${e.dep.filePath}" in file "${e.module.filePath}, module id is ${e.module.id}".`).join();
     if(errorMessage) {
-      content += templates.run(`console.error(\'${errorMessage}\');`);
+      content += templates.run(`console.error(${JSON.stringify(errorMessage)});`);
     }
     this._appendContent(content + templates.bootstrap());
   }
