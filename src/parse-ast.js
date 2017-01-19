@@ -1,5 +1,7 @@
 import traverse from 'babel-traverse';
 
+
+const availableVars = ['global', 'process'];
 export default function(ast) {
   var dependencies = [];
   var variables = [];
@@ -35,11 +37,12 @@ export default function(ast) {
         optional: false
       })
     },
-    AssignmentExpression(path) {
-      var {left, right} = path.node;
-      if(left && left.type === 'MemberExpression'
-        && left.object && left.object.name === 'global') {
-        variables.push(left.object.name);
+    Identifier(path) {
+      var name = path.node.name;
+      if(availableVars.indexOf(name) > -1
+        && !variables.some(v=>v.name === name)
+        && !path.scope.hasBinding(name)) {
+        variables.push({name: name});
       }
     }
   });

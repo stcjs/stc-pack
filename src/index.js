@@ -7,7 +7,7 @@ import Path from 'path';
 import {resolve, isCss} from './resolve';
 import parse from './parse-ast';
 import {isMaster} from 'cluster';
-
+import {extractVariablesDependencies, getVariableSource} from './node-libs-browser';
 import fs from 'fs';
 
 
@@ -19,10 +19,6 @@ export default class JSPackPlugin extends Plugin {
   async run(){
     let content = await this.getContent('utf8');
     let ast = await this.getAst();
-
-    // if(/\.css\.js$/.test(resolvePath)) {
-    //   console.log(filepath, resolvePath);
-    // }
 
     var module = await this.compile(ast, content)
 
@@ -62,9 +58,10 @@ export default class JSPackPlugin extends Plugin {
       d.needToInvokeSelf = needToInvokeSelf;
       d.isAbsolute = isAbsolute;
     }
+    // 有的 variables 需要引入依赖， 比如 process 的实现定义在 ./mock-node-libs/process.js,
+    dependencies.push.apply(dependencies, extractVariablesDependencies(variables));
 
     // 所有路径唯一的 id （需要在主进程执行），批量执行减少和主进程的通讯
-
     var idMap, filePaths = [path, ...dependencies.map(d=>d.filePath)];
     if(isMaster) {
       idMap = this.getModuleIds(filePaths);
@@ -86,12 +83,11 @@ export default class JSPackPlugin extends Plugin {
       return s.substring(0, start) + substitute + s.substring(end);
     }
 
+    // 替换相对路径为唯一 id
     var startOffset = 0;
     var endOffset = 0;
-
-    // 替换相对路径为唯一 id
     for(d of dependencies) {
-      if(!d.request) continue;
+      if(!d.request) continue; // 注意 variables 的依赖是没有 request 的
 
       d.id = idMap[d.filePath];
       let idStr = d.id.toString();
@@ -101,6 +97,14 @@ export default class JSPackPlugin extends Plugin {
       endOffset += offset;
     }
 
+    // 注入 variables 全局变量
+    if(variables.length) {
+      var varStartCode = '/* STC-PACK VAR INJECTION */ (function(' + variables.map(v=>v.name).join(', ') + ') {';
+        // learn from webpack: exports === this in the topLevelBlock, but exports do compress better...
+      var varEndCode = (true ? '}.call(exports, ' : '}.call(this, ') +
+        variables.map(v=>getVariableSource(v, idMap)).join(', ') + '))';
+      module.content = varStartCode + module.content + varEndCode;
+    }
     return module;
   }
 
