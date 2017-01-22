@@ -18,14 +18,18 @@ export default function(ast) {
     CallExpression(path) {
       var c = path.node.callee;
       var a = path.node.arguments;
-      if(c.name === 'require' && a && a.length === 1) {
-        a = a[0];
-        dependencies.push({
-          request: a.value,
-          start: a.start,
-          end: a.end,
-          optional: scope.inTry && scope.inBlock // in try block
-        });
+      if(c.name === 'require') {
+        if(a && a.length === 1) {
+          a = a[0];
+          dependencies.push({
+            request: a.value,
+            start: a.start,
+            end: a.end,
+            optional: scope.inTry && scope.inBlock // in try block
+          });
+        } else {
+
+        }
       }
     },
     ImportDeclaration(path) {

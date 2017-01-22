@@ -5,7 +5,7 @@ class ModuleManager {
   modules = {}
   counter = 0
   parentModules = {}
-
+  chunks = {}
   getPathHash(path) {
     var match = this.pathMap[path];
     if(match > 0) {
@@ -46,7 +46,6 @@ class ModuleManager {
 
     return module;
   }
-
 
   getRootParentIDs(module, result = [], idTrace = [], isFirst = true) {
     // idTrace 一个是为了避免循环引用，还可以提高性能
