@@ -149,12 +149,12 @@ process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
 
-process.binding = function (name) {
+process.binding = function () {
     throw new Error('process.binding is not supported');
 };
 
 process.cwd = function () { return '/' };
-process.chdir = function (dir) {
+process.chdir = function () {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };

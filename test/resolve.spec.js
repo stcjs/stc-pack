@@ -2,17 +2,18 @@ import test from 'ava';
 import path from 'path';
 import {resolve} from '../lib/resolve';
 
+const FILE_PATH = './replace-source.spec';
 // 解析绝对路径
 test('resolve absolute requestPath', t => {
-  var {filePath, needToInvokeSelf, isAbsolute} = resolve('root/file.js', require.resolve('./dependency-list.spec'));
-  t.is(filePath, path.normalize(require.resolve('./dependency-list.spec.js')));
+  var {filePath, needToInvokeSelf, isAbsolute} = resolve('root/file.js', require.resolve(FILE_PATH));
+  t.is(filePath, path.normalize(require.resolve(FILE_PATH)));
   t.is(needToInvokeSelf, true);
   t.is(isAbsolute, true);
 });
 
 test('resolve absolute filePath', t => {
-  var {filePath, needToInvokeSelf, isAbsolute} = resolve(require.resolve('./dependency-list.spec'), './dependency-list.spec');
-  t.is(filePath, path.normalize(require.resolve('./dependency-list.spec')));
+  var {filePath, needToInvokeSelf, isAbsolute} = resolve(require.resolve(FILE_PATH), FILE_PATH);
+  t.is(filePath, path.normalize(require.resolve(FILE_PATH)));
   t.is(needToInvokeSelf, true);
   t.is(isAbsolute, true);
 });

@@ -7,9 +7,9 @@ import Bundle from './bundle';
 
 
 export default class EntryBundle extends Bundle {
-  handleCreate(module) {
+  handleCreate(module, options) {
     this.modules[module.id] = module;
-    var content = templates.DI + templates.entry(module);
+    var content = templates.pack(options) + templates.entry(module);
     this._writeContent(content);
   }
 

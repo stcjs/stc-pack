@@ -1,0 +1,229 @@
+{
+  "name": "stc-pack",
+  "version": "0.0.3",
+  "dependencies": {
+    "babel-traverse": {
+      "version": "6.22.1",
+      "from": "babel-traverse@6.22.1",
+      "resolved": "http://registry.npm.qiwoo.org/babel-traverse/download/babel-traverse-6.22.1.tgz",
+      "dependencies": {
+        "babel-code-frame": {
+          "version": "6.22.0",
+          "from": "babel-code-frame@>=6.22.0 <7.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/babel-code-frame/download/babel-code-frame-6.22.0.tgz",
+          "dependencies": {
+            "chalk": {
+              "version": "1.1.3",
+              "from": "chalk@>=1.1.0 <2.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/chalk/download/chalk-1.1.3.tgz",
+              "dependencies": {
+                "ansi-styles": {
+                  "version": "2.2.1",
+                  "from": "ansi-styles@>=2.2.1 <3.0.0",
+                  "resolved": "http://registry.npm.qiwoo.org/ansi-styles/download/ansi-styles-2.2.1.tgz"
+                },
+                "escape-string-regexp": {
+                  "version": "1.0.5",
+                  "from": "escape-string-regexp@>=1.0.2 <2.0.0",
+                  "resolved": "http://registry.npm.qiwoo.org/escape-string-regexp/download/escape-string-regexp-1.0.5.tgz"
+                },
+                "has-ansi": {
+                  "version": "2.0.0",
+                  "from": "has-ansi@>=2.0.0 <3.0.0",
+                  "resolved": "http://registry.npm.qiwoo.org/has-ansi/download/has-ansi-2.0.0.tgz",
+                  "dependencies": {
+                    "ansi-regex": {
+                      "version": "2.1.1",
+                      "from": "ansi-regex@>=2.0.0 <3.0.0",
+                      "resolved": "http://registry.npm.qiwoo.org/ansi-regex/download/ansi-regex-2.1.1.tgz"
+                    }
+                  }
+                },
+                "strip-ansi": {
+                  "version": "3.0.1",
+                  "from": "strip-ansi@>=3.0.0 <4.0.0",
+                  "resolved": "http://registry.npm.qiwoo.org/strip-ansi/download/strip-ansi-3.0.1.tgz",
+                  "dependencies": {
+                    "ansi-regex": {
+                      "version": "2.1.1",
+                      "from": "ansi-regex@>=2.0.0 <3.0.0",
+                      "resolved": "http://registry.npm.qiwoo.org/ansi-regex/download/ansi-regex-2.1.1.tgz"
+                    }
+                  }
+                },
+                "supports-color": {
+                  "version": "2.0.0",
+                  "from": "supports-color@>=2.0.0 <3.0.0",
+                  "resolved": "http://registry.npm.qiwoo.org/supports-color/download/supports-color-2.0.0.tgz"
+                }
+              }
+            },
+            "esutils": {
+              "version": "2.0.2",
+              "from": "esutils@>=2.0.2 <3.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/esutils/download/esutils-2.0.2.tgz"
+            },
+            "js-tokens": {
+              "version": "3.0.0",
+              "from": "js-tokens@>=3.0.0 <4.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/js-tokens/download/js-tokens-3.0.0.tgz"
+            }
+          }
+        },
+        "babel-messages": {
+          "version": "6.22.0",
+          "from": "babel-messages@>=6.22.0 <7.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/babel-messages/download/babel-messages-6.22.0.tgz"
+        },
+        "babel-runtime": {
+          "version": "6.22.0",
+          "from": "babel-runtime@>=6.22.0 <7.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/babel-runtime/download/babel-runtime-6.22.0.tgz",
+          "dependencies": {
+            "core-js": {
+              "version": "2.4.1",
+              "from": "core-js@>=2.4.0 <3.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/core-js/download/core-js-2.4.1.tgz"
+            },
+            "regenerator-runtime": {
+              "version": "0.10.1",
+              "from": "regenerator-runtime@>=0.10.0 <0.11.0",
+              "resolved": "http://registry.npm.qiwoo.org/regenerator-runtime/download/regenerator-runtime-0.10.1.tgz"
+            }
+          }
+        },
+        "babel-types": {
+          "version": "6.22.0",
+          "from": "babel-types@>=6.22.0 <7.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/babel-types/download/babel-types-6.22.0.tgz",
+          "dependencies": {
+            "esutils": {
+              "version": "2.0.2",
+              "from": "esutils@>=2.0.2 <3.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/esutils/download/esutils-2.0.2.tgz"
+            },
+            "to-fast-properties": {
+              "version": "1.0.2",
+              "from": "to-fast-properties@>=1.0.1 <2.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/to-fast-properties/download/to-fast-properties-1.0.2.tgz"
+            }
+          }
+        },
+        "debug": {
+          "version": "2.6.0",
+          "from": "debug@>=2.2.0 <3.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/debug/download/debug-2.6.0.tgz",
+          "dependencies": {
+            "ms": {
+              "version": "0.7.2",
+              "from": "ms@0.7.2",
+              "resolved": "http://registry.npm.qiwoo.org/ms/download/ms-0.7.2.tgz"
+            }
+          }
+        },
+        "globals": {
+          "version": "9.14.0",
+          "from": "globals@>=9.0.0 <10.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/globals/download/globals-9.14.0.tgz"
+        },
+        "invariant": {
+          "version": "2.2.2",
+          "from": "invariant@>=2.2.0 <3.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/invariant/download/invariant-2.2.2.tgz",
+          "dependencies": {
+            "loose-envify": {
+              "version": "1.3.1",
+              "from": "loose-envify@>=1.0.0 <2.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/loose-envify/download/loose-envify-1.3.1.tgz",
+              "dependencies": {
+                "js-tokens": {
+                  "version": "3.0.0",
+                  "from": "js-tokens@>=3.0.0 <4.0.0",
+                  "resolved": "http://registry.npm.qiwoo.org/js-tokens/download/js-tokens-3.0.0.tgz"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "babel-types": {
+      "version": "6.22.0",
+      "from": "babel-types@6.22.0",
+      "resolved": "http://registry.npm.qiwoo.org/babel-types/download/babel-types-6.22.0.tgz",
+      "dependencies": {
+        "babel-runtime": {
+          "version": "6.22.0",
+          "from": "babel-runtime@>=6.22.0 <7.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/babel-runtime/download/babel-runtime-6.22.0.tgz",
+          "dependencies": {
+            "core-js": {
+              "version": "2.4.1",
+              "from": "core-js@>=2.4.0 <3.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/core-js/download/core-js-2.4.1.tgz"
+            },
+            "regenerator-runtime": {
+              "version": "0.10.1",
+              "from": "regenerator-runtime@>=0.10.0 <0.11.0",
+              "resolved": "http://registry.npm.qiwoo.org/regenerator-runtime/download/regenerator-runtime-0.10.1.tgz"
+            }
+          }
+        },
+        "esutils": {
+          "version": "2.0.2",
+          "from": "esutils@>=2.0.2 <3.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/esutils/download/esutils-2.0.2.tgz"
+        },
+        "to-fast-properties": {
+          "version": "1.0.2",
+          "from": "to-fast-properties@>=1.0.1 <2.0.0",
+          "resolved": "http://registry.npm.qiwoo.org/to-fast-properties/download/to-fast-properties-1.0.2.tgz"
+        }
+      }
+    },
+    "lodash": {
+      "version": "4.17.4",
+      "from": "lodash@4.17.4",
+      "resolved": "http://registry.npm.qiwoo.org/lodash/download/lodash-4.17.4.tgz"
+    },
+    "style-loader": {
+      "version": "0.13.1",
+      "from": "style-loader@*",
+      "resolved": "http://registry.npmjs.org/style-loader/-/style-loader-0.13.1.tgz",
+      "dependencies": {
+        "loader-utils": {
+          "version": "0.2.16",
+          "from": "loader-utils@>=0.2.7 <0.3.0",
+          "resolved": "http://registry.npmjs.org/loader-utils/-/loader-utils-0.2.16.tgz",
+          "dependencies": {
+            "big.js": {
+              "version": "3.1.3",
+              "from": "big.js@>=3.1.3 <4.0.0",
+              "resolved": "http://registry.npmjs.org/big.js/-/big.js-3.1.3.tgz"
+            },
+            "emojis-list": {
+              "version": "2.1.0",
+              "from": "emojis-list@>=2.0.0 <3.0.0",
+              "resolved": "http://registry.npmjs.org/emojis-list/-/emojis-list-2.1.0.tgz"
+            },
+            "json5": {
+              "version": "0.5.0",
+              "from": "json5@>=0.5.0 <0.6.0",
+              "resolved": "http://registry.npmjs.org/json5/-/json5-0.5.0.tgz"
+            },
+            "object-assign": {
+              "version": "4.1.0",
+              "from": "object-assign@>=4.0.1 <5.0.0",
+              "resolved": "http://registry.npm.qiwoo.org/object-assign/download/object-assign-4.1.0.tgz"
+            }
+          }
+        }
+      }
+    },
+    "thinkit": {
+      "version": "4.10.0",
+      "from": "thinkit@4.10.0",
+      "resolved": "http://registry.npm.qiwoo.org/thinkit/download/thinkit-4.10.0.tgz"
+    }
+  }
+}

@@ -1,11 +1,13 @@
-// import Serializer from 'circular-json';
-
 class ModuleManager {
   pathMap = {}
   modules = {}
   counter = 0
   parentModules = {}
   chunks = {}
+
+  getModules() {
+    return Object.keys(this.modules).map(id=>this.modules[id]);
+  }
   getPathHash(path) {
     var match = this.pathMap[path];
     if(match > 0) {

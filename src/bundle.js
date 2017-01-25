@@ -2,15 +2,15 @@
 
 // bundle 的接口，具体实现看 bundles 里面的对象
 class Bundle {
-  constructor(module) {
+  constructor(module, options) {
     // bundle's rootModule is immutable, immutable, immutable.
     this.rootModule = module;
     this.modules = {};
-    this.onCreate(module);
+    this.onCreate(module, options);
   }
 
-  onCreate(module) {
-    this.handleCreate(module);
+  onCreate(module, options) {
+    this.handleCreate(module, options);
   }
 
   // 当所有文件都处理完了以后

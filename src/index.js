@@ -8,8 +8,8 @@ import {resolve, isCss} from './resolve';
 import parse from './parse-ast';
 import {isMaster} from 'cluster';
 import {extractVariablesDependencies, getVariableSource} from './node-libs-browser';
+import process from 'process';
 import fs from 'fs';
-
 
 const addedFiles = {};
 export default class JSPackPlugin extends Plugin {
@@ -17,14 +17,73 @@ export default class JSPackPlugin extends Plugin {
    * run
    */
   async run(){
+    var time = process.hrtime();
+
     let content = await this.getContent('utf8');
-    let ast = await this.getAst();
+    let ast = await this.getAst(content);
+    var module = await this.compile(ast, content);
 
-    var module = await this.compile(ast, content)
+    var diff = process.hrtime(time);
 
+    module.runCost = Math.round((diff[0] * 1e9 + diff[1])/10000) / 100;
     var serializedModule = JSON.stringify(module);
+
     return {serializedModule};
   }
+
+
+  resolveCMD(dependencies) {
+    var path = this.file.path;
+    var dep;
+    for(dep of dependencies) {
+      if(!dep.request) continue;
+      var {filePath, needToInvokeSelf, isAbsolute} = resolve(path, dep.request, this.options);
+      dep.filePath = filePath;
+      dep.needToInvokeSelf = needToInvokeSelf;
+      dep.isAbsolute = isAbsolute;
+    }
+  }
+
+  resolveAMD(chunks) {
+    var path = this.file.path;
+    var chunk;
+    for(chunk of chunks) {
+      chunk.dependencies = [];
+      for(var request of chunk.requests) {
+        var {filePath, needToInvokeSelf, isAbsolute} = resolve(path, request, this.options);
+        chunk.dependencies.push({
+          filePath, needToInvokeSelf, isAbsolute
+        });
+      }
+    }
+  }
+
+  async workerInvokeGetIdMap(dependencies, chunks) {
+    var path = this.file.path;
+    var filePaths = [path];
+    var getFilePath = d=>d.filePath;
+    filePaths.push.apply(filePaths, dependencies.map(getFilePath));
+    chunks.forEach(chunk=>{
+      filePaths.push.apply(filePaths, chunk.dependencies.map(getFilePath));
+    });
+
+    if(isMaster) {
+      return this.getModuleIds(filePaths);
+    }
+    return await this.workerInvoke('getModuleIds', filePaths);
+  }
+
+  /**
+   * 在子进程调用 wokerInvoke 获取 filePath 文件名对于的唯一 Id
+   */
+  getModuleIds(filePaths) {
+    var result = filePaths.reduce((map, filePath)=>{
+      map[filePath] = ModuleManager.getPathHash(filePath);
+      return map;
+    }, {});
+    return result;
+  }
+
   /**
    * 子进程处理，费时的操作都放在这里
    */
@@ -44,30 +103,20 @@ export default class JSPackPlugin extends Plugin {
       }
     }
     try {
-      var {dependencies, variables} = parse(ast);
+      var {dependencies, variables, chunks} = parse(ast);
     } catch(e) {
       console.log('error parsing ' + path);
     }
 
     // 先解析所有依赖
-    let d;
-    for(d of dependencies) {
-      if(!d.request) continue;
-      let {filePath, needToInvokeSelf, isAbsolute} = resolve(path, d.request, options);
-      d.filePath = filePath;
-      d.needToInvokeSelf = needToInvokeSelf;
-      d.isAbsolute = isAbsolute;
-    }
+    this.resolveCMD(dependencies);
+    this.resolveAMD(chunks);
+
     // 有的 variables 需要引入依赖， 比如 process 的实现定义在 ./mock-node-libs/process.js,
     dependencies.push.apply(dependencies, extractVariablesDependencies(variables));
 
     // 所有路径唯一的 id （需要在主进程执行），批量执行减少和主进程的通讯
-    var idMap, filePaths = [path, ...dependencies.map(d=>d.filePath)];
-    if(isMaster) {
-      idMap = this.getModuleIds(filePaths);
-    } else {
-      idMap = await this.workerInvoke('getModuleIds', filePaths);
-    }
+    var idMap = await this.workerInvokeGetIdMap(dependencies, chunks);
 
     var module =  {
       dependencies,
@@ -86,7 +135,7 @@ export default class JSPackPlugin extends Plugin {
     // 替换相对路径为唯一 id
     var startOffset = 0;
     var endOffset = 0;
-    for(d of dependencies) {
+    for(var d of dependencies) {
       if(!d.request) continue; // 注意 variables 的依赖是没有 request 的
 
       d.id = idMap[d.filePath];
@@ -128,7 +177,7 @@ export default class JSPackPlugin extends Plugin {
 
     // 这个方法就是把 module 归入到 bundle 之中，同时把关联的 bundle 向上合并。
     // 注意： 这种方法是的顺序是不稳定， 因为是特别针对并行处理设计，什么时候处理了哪个文件并不知道。
-    BundleManager.addModule(module, parentIDs, childrenIDs);
+    BundleManager.addModule(module, parentIDs, childrenIDs, this.options);
     // }
 
     for(let dependency of module.dependencies) {
@@ -151,23 +200,13 @@ export default class JSPackPlugin extends Plugin {
           continue;
         }
 
+
         await this.addFile(filePath, fs.readFileSync(filePath), true);
         await this.invokeSelf(filePath);
       }
     }
 
     this.setContent(module.content);
-  }
-
-  /**
-   * 在子进程调用 wokerInvoke 获取 filePath 文件名对于的唯一 Id
-   */
-  getModuleIds(filePaths) {
-    var result = filePaths.reduce((map, filePath)=>{
-      map[filePath] = ModuleManager.getPathHash(filePath);
-      return map;
-    }, {});
-    return result;
   }
 
   /**
@@ -194,5 +233,25 @@ export default class JSPackPlugin extends Plugin {
    */
   static after() {
     BundleManager.onAfter();
+    var ms = ModuleManager.getModules().map((m)=>{
+      return {path: m.filePath, time: m.runCost};
+    });
+    function compare(a,b) {
+      if (a.time/1 < b.time/1)
+        return 1;
+      if (a.time/1 > b.time/1)
+        return -1;
+      return 0;
+    }
+    ms = ms.sort(compare).map(m=>m.time + 'ms \t' + m.path).join('\n');
+    log(ms);
   }
 }
+
+// require.e('chunkid', function(require) {
+//     var __require_array__ = [require('a')];
+//     (function(a){
+//       console.log(a);
+//     }).call(null, __require_array__);
+//   }
+// );

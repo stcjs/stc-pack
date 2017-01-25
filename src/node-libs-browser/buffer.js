@@ -1,5 +1,5 @@
 function Buffer() {
-	throw new Error("Buffer is not included.");
+	throw new Error('Buffer is not included.');
 }
 Buffer.isBuffer = function() {
   return false;

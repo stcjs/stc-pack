@@ -4,10 +4,13 @@
     "node": true,
     "mocha": true
   },
+  "globals": {
+    "window": true
+  },
   "rules": {
     "strict": [0],
     "eqeqeq": 2,
-    "quotes": [2, "single", {"allowTemplateLiterals": true}],
+    "quotes": [1, "single", {"allowTemplateLiterals": true}],
     "no-underscore-dangle": 0,
     "eol-last": 0,
     "camelcase": 0,

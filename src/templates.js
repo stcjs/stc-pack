@@ -1,8 +1,41 @@
 module.exports = {
-  DI:
+  pack(options) {
+    if(!options.output) {
+      throw new Error('options.output is not configured!');
+    }
+    var content =
 `(function() {
+  // the module cache
   var installedModules = [];
+
+  // store all modules (un-excecuted)
   var modules = {};
+
+  // object to store loaded and loading chunks
+  // "0" means "already loaded"
+  // Array means "loading", array contains callbacks
+  var installedChunks = {0:0};
+
+  // prevent code uglify
+  var parentJsonpFunction = window["stcpackJsonp"];
+  window["stcpackJsonp"] = function stcpackJsonpCallback(chunkIds, moreModules) {
+  	// add "moreModules" to the modules object,
+  	// then flag all "chunkIds" as loaded and fire callback
+  	var moduleId, chunkId, i = 0, callbacks = [];
+  	for(;i < chunkIds.length; i++) {
+  		chunkId = chunkIds[i];
+  		if(installedChunks[chunkId])
+  			callbacks.push.apply(callbacks, installedChunks[chunkId]);
+  		installedChunks[chunkId] = 0;
+  	}
+  	for(moduleId in moreModules) {
+  		modules[moduleId] = moreModules[moduleId];
+  	}
+  	if(parentJsonpFunction) parentJsonpFunction(chunkIds, moreModules);
+  	while(callbacks.length)
+  		callbacks.shift().call(null, __require__);
+
+  };
 
   function add(moduleId, module) {
     if(modules[moduleId]) {
@@ -11,7 +44,7 @@ module.exports = {
     modules[moduleId] = module;
   }
 
-  function stc_pack_require(moduleId) {
+  function __require__(moduleId) {
     var m = installedModules[moduleId];
 
     // Check if module is in cache
@@ -27,12 +60,41 @@ module.exports = {
     };
 
     // Execute the module function
-    modules[moduleId].call(m.exports, m.exports, m, stc_pack_require);
+    modules[moduleId].call(m.exports, m.exports, m, __require__);
 
     m.loaded = true;
 
     return m.exports;
   }
+
+  __require__.e = function requireEnsure(chunkId, callback) {
+
+    // "0" is the signal for "already loaded"
+    if(installedChunks[chunkId] === 0)
+    	return callback.call(null, __require__);
+
+    // an array means "currently loading".
+    if(installedChunks[chunkId] !== undefined) {
+    	installedChunks[chunkId].push(callback);
+    } else {
+    	// start chunk loading
+    	installedChunks[chunkId] = [callback];
+    	var head = document.getElementsByTagName('head')[0];
+    	var script = document.createElement('script');
+    	script.type = 'text/javascript';
+    	script.charset = 'utf-8';
+    	script.async = true;
+
+    	script.src = __require__.p + "" + chunkId + ".chunk.js";
+    	head.appendChild(script);
+    }
+  }
+  // expose the modules object
+  __require__.m = modules;
+
+  // expose the module cache
+  __require__.c = installedModules;
+  __require__.p = ${options.output.publicPath};
 
   var entryId;
   var stcPack = {
@@ -49,11 +111,13 @@ module.exports = {
       return stcPack;
     },
     bootstrap: function() {
-      stc_pack_require(entryId);
+      __require__(entryId);
     }
   };
   return stcPack;
-})()`,
+})()`;
+    return content;
+  },
   entry: function(module) {
     return `\n.entry(${module.id}, function(exports, module, require) {\n${module.content}\n})`;
   },

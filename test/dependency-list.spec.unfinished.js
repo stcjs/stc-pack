@@ -4,10 +4,10 @@ import parse from '../lib/parse-ast';
 import sample from './ast/require-import-global';
 var babylon = require('babylon');
 
-test('find all dependencies', t => {
-  let {dependencies} = parse(sample.ast);
-  t.is(dependencies.length, 6);
-});
+// test('find all dependencies', t => {
+//   let {dependencies} = parse(sample.ast);
+//   t.is(dependencies.length, 6);
+// });
 
 // exports.code1 = `global.a = 'value'`;
 
@@ -25,12 +25,12 @@ test('find all dependencies', t => {
 
 // exports.code7 = `function() {global.a};`;
 
-test('global variable general case', t=>{
-  var ast = babylon.parse(`global.a = 'value';`);
-  let {variables} = parse(ast);
-  t.is(variables.length, 1);
-  t.is(variables[0], 'global');
-});
+// test('global variable general case', t=>{
+//   var ast = babylon.parse(`global.a = 'value';`);
+//   let {variables} = parse(ast);
+//   t.is(variables.length, 1);
+//   t.is(variables[0], 'global');
+// });
 
 
 // test('global variable should ignore VariableDeclarator', t=>{

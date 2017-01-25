@@ -9,7 +9,7 @@ class BundleManager {
     return this.bundles[moduleId];
   }
 
-  addModule(module, rootIds, childrenIds) {
+  addModule(module, rootIds, childrenIds, options) {
     var bundles = this.bundles;
 
     // 把所有 module 分别合并到 root module 所在的 bundle 里面
@@ -27,7 +27,7 @@ class BundleManager {
       return;
     }
 
-    var bundle = this._addBundle(module);
+    var bundle = this._addBundle(module, options);
     // merge children
     if(childrenIds.length) {
       this._mergeChildren(bundle, childrenIds);
@@ -54,8 +54,8 @@ class BundleManager {
     });
   }
 
-  _addBundle(module) {
-    var bundle = module.isEntry ? new EntryBundle(module) : new ChainBundle(module);
+  _addBundle(module, options) {
+    var bundle = module.isEntry ? new EntryBundle(module, options) : new ChainBundle(module);
 
     this.bundles[module.id] = bundle;
     return bundle;

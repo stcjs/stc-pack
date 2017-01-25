@@ -1,5 +1,4 @@
 import Plugin from 'stc-plugin';
-import Path from 'path';
 import stcPack from './index';
 var addStylePath = require.resolve('style-loader/addStyles');
 export default class JSPackPlugin extends Plugin {

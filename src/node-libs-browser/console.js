@@ -1,7 +1,7 @@
 var console;
-if (typeof global !== "undefined" && global.console) {
+if (typeof global !== 'undefined' && global.console) {
     console = global.console
-} else if (typeof window !== "undefined" && window.console) {
+} else if (typeof window !== 'undefined' && window.console) {
     console = window.console
 } else {
     console = window.console = {}

@@ -5,6 +5,7 @@ const availableVars = ['global', 'process'];
 export default function(ast) {
   var dependencies = [];
   var variables = [];
+  var chunks = [];
   var scope = {inTry: false, inBlock: false}
   traverse(ast, {
     TryStatement: {
@@ -19,6 +20,7 @@ export default function(ast) {
       var c = path.node.callee;
       var a = path.node.arguments;
       if(c.name === 'require') {
+        // CMD
         if(a && a.length === 1) {
           a = a[0];
           dependencies.push({
@@ -27,8 +29,17 @@ export default function(ast) {
             end: a.end,
             optional: scope.inTry && scope.inBlock // in try block
           });
-        } else {
-
+        } else if(a && a.length === 2 && a[0].type === 'ArrayExpression'){
+          // AMD
+          var chunk = {
+            start: path.node.start,
+            end: path.node.end,
+            arg0Start: a[0].start,
+            arg0End: a[0].end,
+            requests: a[0].elements.map(literal=>literal.value)
+          };
+          console.log(chunk);
+          chunks.push(chunk);
         }
       }
     },
@@ -50,6 +61,6 @@ export default function(ast) {
       }
     }
   });
-  return {dependencies, variables};
+  return {dependencies, variables, chunks};
 
 }
