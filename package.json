@@ -9,7 +9,7 @@
     "compile": "babel --presets es2015-loose,stage-1 src/ --out-dir lib/ --source-maps",
     "watch-compile": "npm run compile -- --watch",
     "watch": "npm run watch-compile",
-    "prepublish": "npm run compile",
+    "prepublish": "npm run eslint & npm run compile",
     "eslint": "eslint src/"
   },
   "repository": {
