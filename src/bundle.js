@@ -5,12 +5,13 @@ class Bundle {
   constructor(module, options) {
     // bundle's rootModule is immutable, immutable, immutable.
     this.rootModule = module;
+    this.options = options;
     this.modules = {};
-    this.onCreate(module, options);
+    this.onCreate(module);
   }
 
-  onCreate(module, options) {
-    this.handleCreate(module, options);
+  onCreate(module) {
+    this.handleCreate(module);
   }
 
   // 当所有文件都处理完了以后
@@ -19,7 +20,7 @@ class Bundle {
   }
 
   mergeBundle(bundle) {
-    if(bundle.rootModule.isEntry) {
+    if(bundle.rootModule.entryName) {
       throw new Error(`Can not merge entry bundle ${bundle.rootModule.filePath} into bundle ${this.rootModule.filePath}`);
     }
     this.handleMergeBundle(bundle);

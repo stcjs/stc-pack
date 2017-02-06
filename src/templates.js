@@ -16,32 +16,11 @@ module.exports = {
   // Array means "loading", array contains callbacks
   var installedChunks = {0:0};
 
-  // prevent code uglify
-  var parentJsonpFunction = window["stcpackJsonp"];
-  window["stcpackJsonp"] = function stcpackJsonpCallback(chunkIds, moreModules) {
-  	// add "moreModules" to the modules object,
-  	// then flag all "chunkIds" as loaded and fire callback
-  	var moduleId, chunkId, i = 0, callbacks = [];
-  	for(;i < chunkIds.length; i++) {
-  		chunkId = chunkIds[i];
-  		if(installedChunks[chunkId])
-  			callbacks.push.apply(callbacks, installedChunks[chunkId]);
-  		installedChunks[chunkId] = 0;
-  	}
-  	for(moduleId in moreModules) {
-  		modules[moduleId] = moreModules[moduleId];
-  	}
-  	if(parentJsonpFunction) parentJsonpFunction(chunkIds, moreModules);
-  	while(callbacks.length)
-  		callbacks.shift().call(null, __require__);
-
-  };
 
   function add(moduleId, module) {
-    if(modules[moduleId]) {
-      throw new Error('module ' + moduleId +  ' is bundled mutiple times');
+    if(!modules[moduleId]) {
+      modules[moduleId] = module;
     }
-    modules[moduleId] = module;
   }
 
   function __require__(moduleId) {
@@ -71,22 +50,22 @@ module.exports = {
 
     // "0" is the signal for "already loaded"
     if(installedChunks[chunkId] === 0)
-    	return callback.call(null, __require__);
+      return callback.call(null, __require__);
 
     // an array means "currently loading".
     if(installedChunks[chunkId] !== undefined) {
-    	installedChunks[chunkId].push(callback);
+      installedChunks[chunkId].push(callback);
     } else {
-    	// start chunk loading
-    	installedChunks[chunkId] = [callback];
-    	var head = document.getElementsByTagName('head')[0];
-    	var script = document.createElement('script');
-    	script.type = 'text/javascript';
-    	script.charset = 'utf-8';
-    	script.async = true;
+      // start chunk loading
+      installedChunks[chunkId] = [callback];
+      var head = document.getElementsByTagName('head')[0];
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.charset = 'utf-8';
+      script.async = true;
 
-    	script.src = __require__.p + "" + chunkId + ".chunk.js";
-    	head.appendChild(script);
+      script.src = __require__.p + '' + chunkId + '${options.output.chunkFilename.replace(/^\[.+\]/, '')}';
+      head.appendChild(script);
     }
   }
   // expose the modules object
@@ -94,27 +73,43 @@ module.exports = {
 
   // expose the module cache
   __require__.c = installedModules;
-  __require__.p = ${options.output.publicPath};
+  __require__.p = '${options.output.publicPath}';
 
   var entryId;
-  var stcPack = {
+
+  var stcpack = {
     add: function() {
       add.apply(undefined, arguments);
-      return stcPack;
+      return stcpack;
     },
     entry: function(moduleId, module) {
       add(moduleId, module);
       entryId = moduleId;
-      return stcPack;
+      return stcpack;
     },
     run: function() {
-      return stcPack;
+      return stcpack;
+    },
+    chunkReady: function(chunkIds) {
+      // flag all "chunkIds" as loaded and fire callback
+      var moduleId, chunkId, i = 0, callbacks = [];
+      for(;i < chunkIds.length; i++) {
+        chunkId = chunkIds[i];
+        if(installedChunks[chunkId])
+          callbacks.push.apply(callbacks, installedChunks[chunkId]);
+        installedChunks[chunkId] = 0;
+      }
+      while(callbacks.length)
+        callbacks.shift().call(null, __require__);
+
+      return stcpack;
     },
     bootstrap: function() {
       __require__(entryId);
     }
   };
-  return stcPack;
+  window["stcpackJsonp"] = function() {return stcpack};
+  return stcpack;
 })()`;
     return content;
   },
@@ -127,7 +122,13 @@ module.exports = {
   run: function(content) {
     return `\n.run((function(){\n${content}\n})()})`;
   },
+  chunk: function() {
+    return 'stcpackJsonp()';
+  },
+  chunkReady: function(module) {
+    return `\n.chunkReady([${module.chunkId}])`;
+  },
   bootstrap: function() {
-    return '.bootstrap();';
+    return '\n.bootstrap();';
   }
 }

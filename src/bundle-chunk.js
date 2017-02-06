@@ -5,12 +5,28 @@ import thinkit from 'thinkit/lib/index';
 import ModuleManager from './module-manager';
 import Bundle from './bundle';
 
-
 export default class ChunkBundle extends Bundle {
   handleCreate(module) {
     this.modules[module.id] = module;
-    var content = templates.DI + templates.entry(module);
-    this._writeContent(content);
+    this.content = '';
+    this._writeContent(templates.chunk(this.options));
+  }
+
+  _getOutputPath() {
+    var output = this.options.output;
+    var p = Path.join('output', output.chunkFilename.replace(/^\[chunkId\]/, this.rootModule.chunkId));
+    return p;
+  }
+
+  handleAfter() {
+    var module = this.rootModule;
+    var missingModules = ModuleManager.checkDependencies(module);
+    var content = '';
+    var errorMessage = missingModules.map(e=>`\n Error: Couldn\'t found dependency "${e.dep.filePath}" in file "${e.module.filePath}, module id is ${e.module.id}".`).join();
+    if(errorMessage) {
+      content += templates.run(`console.error(${JSON.stringify(errorMessage)});`);
+    }
+    this._appendContent(content + templates.chunkReady(module));
   }
 
   handleMergeBundle(bundle) {
@@ -34,11 +50,6 @@ export default class ChunkBundle extends Bundle {
     }
   }
 
-  _getOutputPath() {
-    var p = Path.join('output', this.rootModule.filePath.replace(/\.js$/, '.bundle.js'));
-    return p;
-  }
-
   _writeContent(content) {
     var outputPath = this._getOutputPath();
     var dir = Path.dirname(outputPath);
@@ -49,18 +60,17 @@ export default class ChunkBundle extends Bundle {
     fs.writeFileSync(outputPath, content);
   }
 
+  _tryAppendContent(content) {
+    this.content += content;
+    if(this.content.length > 1024 * 100) {
+      this._appendContent(this.content);
+      this.content = '';
+    }
+  }
+
   _appendContent(content) {
     fs.appendFileSync(this._getOutputPath(), content);
   }
 
-  handleAfter() {
-    var module = this.rootModule;
-    var missingModules = ModuleManager.checkDependencies(module);
-    var content = '';
-    var errorMessage = missingModules.map(e=>`\n Error: Couldn\'t found dependency "${e.dep.filePath}" in file "${e.module.filePath}, module id is ${e.module.id}".`).join();
-    if(errorMessage) {
-      content += templates.run(`console.error(${JSON.stringify(errorMessage)});`);
-    }
-    this._appendContent(content + templates.bootstrap());
-  }
+
 }

@@ -1,6 +1,7 @@
 import ModuleManager from './module-manager';
-import EntryBundle from './bundle-entry';
-import ChainBundle from './bundle-chain';
+import BundleEntry from './bundle-entry';
+import BundleChain from './bundle-chain';
+import BundleChunk from './bundle-chunk';
 
 class BundleManager {
   bundles = {}
@@ -55,7 +56,14 @@ class BundleManager {
   }
 
   _addBundle(module, options) {
-    var bundle = module.isEntry ? new EntryBundle(module, options) : new ChainBundle(module);
+    var bundle;
+    if(module.entryName) {
+      bundle = new BundleEntry(module, options);
+    } else if(module.chunkId) {
+      bundle = new BundleChunk(module, options);
+    } else {
+      bundle = new BundleChain(module, options);
+    }
 
     this.bundles[module.id] = bundle;
     return bundle;

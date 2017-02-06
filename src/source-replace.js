@@ -2,6 +2,16 @@ export default class {
   constructor(source) {
     this.source = source;
     this.replaceQueue = [];
+    this.appendContent = '';
+    this.prependContent = '';
+  }
+
+  prepend(content) {
+    this.prependContent = content + this.prependContent;
+  }
+
+  append(content) {
+    this.appendContent += content;
   }
   replace(start, end, content) {
     var r = {start, end, content};
@@ -12,7 +22,7 @@ export default class {
   noOverlapping(replace) {
     var {start, end} = replace;
     for(var r of this.replaceQueue) {
-      if( (start > r.start && start < r.end) || (end > r.start && end < r.end) ) {
+      if( (start > r.start && start < r.end) || (end > r.start && end < r.end)) {
         throw new Error(`replace content ${JSON.stringify(replace)} are overlapping with ${JSON.stringify(r)}`);
       }
     }
@@ -41,6 +51,13 @@ export default class {
       startIndex = end;
     }
     result += source.substring(startIndex, source.length);
+
+    if(this.prependContent) {
+      result = this.prependContent + result;
+    }
+    if(this.appendContent) {
+      result += this.appendContent;
+    }
     return result;
   }
 }

@@ -7,6 +7,13 @@ test('replace nothing', t => {
   t.is(result, 'replace this and this');
 });
 
+test('insert string', t => {
+  var source = new ReplaceSource('insert {}');
+  source.replace(8, 8, 'content');
+  var result = source.toString();
+
+  t.is(result, 'insert {content}');
+});
 
 test('replace two string', t => {
   var source = new ReplaceSource('replace this and this');

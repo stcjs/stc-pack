@@ -34,11 +34,14 @@ export default function(ast) {
           var chunk = {
             start: path.node.start,
             end: path.node.end,
+            calleeStart: c.start,
+            calleeEnd: c.end,
             arg0Start: a[0].start,
             arg0End: a[0].end,
+            arg1Start: a[1].start,
+            arg1End: a[1].end,
             requests: a[0].elements.map(literal=>literal.value)
           };
-          console.log(chunk);
           chunks.push(chunk);
         }
       }

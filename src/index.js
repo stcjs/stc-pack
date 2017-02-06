@@ -9,6 +9,7 @@ import parse from './parse-ast';
 import {isMaster} from 'cluster';
 import {extractVariablesDependencies, getVariableSource} from './node-libs-browser';
 import process from 'process';
+import SourceReplace from './source-replace';
 import fs from 'fs';
 
 const addedFiles = {};
@@ -31,7 +32,6 @@ export default class JSPackPlugin extends Plugin {
     return {serializedModule};
   }
 
-
   resolveCMD(dependencies) {
     var path = this.file.path;
     var dep;
@@ -45,6 +45,7 @@ export default class JSPackPlugin extends Plugin {
   }
 
   resolveAMD(chunks) {
+    // chunk 同时也是一个module， 有自己的id，filePath（生成的），依赖等等
     var path = this.file.path;
     var chunk;
     for(chunk of chunks) {
@@ -55,33 +56,85 @@ export default class JSPackPlugin extends Plugin {
           filePath, needToInvokeSelf, isAbsolute
         });
       }
+      chunk.variables = [];
+      chunk.chunks = [];
+      chunk.blocks = [];
     }
   }
 
   async workerInvokeGetIdMap(dependencies, chunks) {
     var path = this.file.path;
+    // 所有分块的标识
+    var chunkFilePaths = [];
+    // 所有依赖的路径，包括自身
     var filePaths = [path];
     var getFilePath = d=>d.filePath;
     filePaths.push.apply(filePaths, dependencies.map(getFilePath));
     chunks.forEach(chunk=>{
+      // chunk 的 filePath 同时需要获取一个对于的唯一的 moduleId 和 chunkId， moduleId用于合并，chunkId用于生成文件名
+      filePaths.push(chunk.filePath); //
       filePaths.push.apply(filePaths, chunk.dependencies.map(getFilePath));
+      chunkFilePaths.push(chunk.filePath);
     });
 
+    var args = {filePaths, chunkFilePaths};
     if(isMaster) {
-      return this.getModuleIds(filePaths);
+      return this.getMap(args);
     }
-    return await this.workerInvoke('getModuleIds', filePaths);
+    return await this.workerInvoke('getMap', args);
   }
 
-  /**
-   * 在子进程调用 wokerInvoke 获取 filePath 文件名对于的唯一 Id
-   */
-  getModuleIds(filePaths) {
-    var result = filePaths.reduce((map, filePath)=>{
+  getMap({filePaths, chunkFilePaths}) {
+    var idMap = filePaths.reduce((map, filePath)=>{
       map[filePath] = ModuleManager.getPathHash(filePath);
       return map;
     }, {});
-    return result;
+
+    var chunkIdMap = chunkFilePaths.reduce((map, filePath)=>{
+      map[filePath] = ModuleManager.getChunkHash(filePath);
+      return map;
+    }, {});
+
+    return {idMap, chunkIdMap};
+  }
+
+
+  replacePathToId(source, dependencies, idMap) {
+    for(var d of dependencies) {
+      if(!d.request) continue; // 注意 variables 的依赖是没有 request 的
+      d.id = idMap[d.filePath];
+      source.replace(d.start, d.end, d.id);
+    }
+  }
+
+  replaceForAMD(source, chunks, idMap) {
+    // require.e('chunkid', function(require) {
+    //   var __require_array__ = [require('a')];(
+    //     function(a){
+    //       console.log(a);
+    //     }
+    //   ).call(null, __require_array__);}
+    // );
+    for(var chunk of chunks) {
+      var preSnippet =
+      `.e(${chunk.chunkId}, function(require) {
+       var __require_array__ = [${chunk.dependencies.map(d=>`require(${idMap[d.filePath]})`).join(',')}];(`;
+      var afterSnippet =
+      `\n).call(null, __require_array__);})`;
+      source.replace(chunk.calleeEnd, chunk.arg1Start, preSnippet);
+      source.replace(chunk.arg1End, chunk.end, afterSnippet);
+    }
+  }
+
+  globalInjectSnippet(source, variables, idMap) {
+    if(variables.length) {
+      var varStartCode = '/* STC-PACK VAR INJECTION */ (function(' + variables.map(v=>v.name).join(', ') + ') {\n';
+        // learn from webpack: exports === this in the topLevelBlock, but exports do compress better...
+      var varEndCode = (true ? '\n/* STC-PACK VAR INJECTION */}.call(exports, ' : '}.call(this, ') +
+        variables.map(v=>getVariableSource(v, idMap)).join(', ') + '))';
+      source.prepend(varStartCode);
+      source.append(varEndCode);
+    }
   }
 
   /**
@@ -94,11 +147,11 @@ export default class JSPackPlugin extends Plugin {
     // addFile 和 一开始添加的不一致, stc 可以改进一下
     path = Path.normalize(path);
 
-    var isEntry = false;
+    var entryName = '';
     for(var entry in options.entry) {
       var entryPath = Path.normalize(options.entry[entry]);
       if(path === entryPath) {
-        isEntry = true;
+        entryName = entry;
         break;
       }
     }
@@ -108,6 +161,9 @@ export default class JSPackPlugin extends Plugin {
       console.log('error parsing ' + path);
     }
 
+    // 生成chunk 的唯一标识
+    chunks.forEach(c=>{c.filePath=`chunk_${path}_${c.start}_${c.end}_${c.requests.join('_')}`})
+
     // 先解析所有依赖
     this.resolveCMD(dependencies);
     this.resolveAMD(chunks);
@@ -116,44 +172,36 @@ export default class JSPackPlugin extends Plugin {
     dependencies.push.apply(dependencies, extractVariablesDependencies(variables));
 
     // 所有路径唯一的 id （需要在主进程执行），批量执行减少和主进程的通讯
-    var idMap = await this.workerInvokeGetIdMap(dependencies, chunks);
+    var {idMap, chunkIdMap} = await this.workerInvokeGetIdMap(dependencies, chunks);
 
     var module =  {
       dependencies,
       variables,
+      chunks,
       blocks: [],
       filePath: path,
       id: idMap[path],
       content,
-      isEntry
+      entryName: entryName // entryName !== '' also mean isEntry
     };
 
-    function replaceRange(s, start, end, substitute) {
-      return s.substring(0, start) + substitute + s.substring(end);
-    }
+    chunks.forEach(chunk=>{
+      chunk.id = idMap[chunk.filePath];
+      chunk.chunkId = chunkIdMap[chunk.filePath];
+    });
 
     // 替换相对路径为唯一 id
-    var startOffset = 0;
-    var endOffset = 0;
-    for(var d of dependencies) {
-      if(!d.request) continue; // 注意 variables 的依赖是没有 request 的
+    var source = new SourceReplace(module.content);
+    this.replacePathToId(source, dependencies, idMap);
 
-      d.id = idMap[d.filePath];
-      let idStr = d.id.toString();
-      module.content = replaceRange(module.content, d.start + startOffset, d.end + endOffset, idStr);
-      var offset = idStr.length - d.end + d.start;
-      startOffset += offset;
-      endOffset += offset;
-    }
+    // 替换代码分块
+    this.replaceForAMD(source, chunks, idMap);
 
     // 注入 variables 全局变量
-    if(variables.length) {
-      var varStartCode = '/* STC-PACK VAR INJECTION */ (function(' + variables.map(v=>v.name).join(', ') + ') {';
-        // learn from webpack: exports === this in the topLevelBlock, but exports do compress better...
-      var varEndCode = (true ? '}.call(exports, ' : '}.call(this, ') +
-        variables.map(v=>getVariableSource(v, idMap)).join(', ') + '))';
-      module.content = varStartCode + module.content + varEndCode;
-    }
+    this.globalInjectSnippet(source, variables, idMap);
+
+    module.content = source.toString();
+
     return module;
   }
 
@@ -161,52 +209,59 @@ export default class JSPackPlugin extends Plugin {
    * update, 在 master 里面执行，所以在这个函数里面能用 全局 缓存，指的是 module
    */
   async update(data){
-    let {err, serializedModule} = data;
+    var {err, serializedModule} = data;
     if(err) {
       return this.fatal(err.message, err.line, err.col);
     }
 
-    let module = ModuleManager.add(serializedModule);
+    var module = ModuleManager.add(JSON.parse(serializedModule));
 
-    // for(let module of modules) {
+    var modules = [module].concat(module.chunks);
+    await Promise.all(modules.map(m=>this.mergeModule(m)));
+
+    this.setContent(module.content);
+  }
+
+  async mergeModule(module) {
+    // for(var module of modules) {
     // 向上递归引用链，找到自己的根 （文件），根一定对于一个 bundle 对象，todo 除非是循环引用的某些情况
-    let parentIDs = ModuleManager.getRootParentIDs(module);
+    var parentIDs = ModuleManager.getRootParentIDs(module);
 
     // 向下递归引用链，找到自己 module， 因为接下来需要找到自己 bundle 并合并
-    let childrenIDs = ModuleManager.getChildrenIDs(module);
+    var childrenIDs = ModuleManager.getChildrenIDs(module);
 
     // 这个方法就是把 module 归入到 bundle 之中，同时把关联的 bundle 向上合并。
     // 注意： 这种方法是的顺序是不稳定， 因为是特别针对并行处理设计，什么时候处理了哪个文件并不知道。
     BundleManager.addModule(module, parentIDs, childrenIDs, this.options);
-    // }
-
-    for(let dependency of module.dependencies) {
-      let filePath = dependency.filePath;
-
-      if(!filePath && !dependency.optional) {
-        this.error(`dependency ${dependency.request} not found in ${module.filePath} optional ${dependency.optional}`);
-      }
-      if(filePath && dependency.needToInvokeSelf && !addedFiles[filePath]) {
-        addedFiles[filePath] = true;
-        if(isCss(filePath)) {
-          let file;
-          filePath = filePath.substr(0, filePath.length-3);
-          if(dependency.isAbsolute) {
-            file = await this.addFile(filePath, fs.readFileSync(filePath), true);
-          } else {
-            file = this.stc.resource.getFileByPath(filePath, this.file.path);
-          }
-          await this.invokePlugin(packCss, file);
-          continue;
-        }
 
 
-        await this.addFile(filePath, fs.readFileSync(filePath), true);
-        await this.invokeSelf(filePath);
-      }
+    await Promise.all(module.dependencies.map(d=>this.handleDependency(d)));
+  }
+
+  async handleDependency(dependency) {
+    var filePath = dependency.filePath;
+
+    if(!filePath && !dependency.optional) {
+      this.error(`dependency ${dependency.request} not found in ${module.filePath} optional ${dependency.optional}`);
     }
+    if(filePath && dependency.needToInvokeSelf && !addedFiles[filePath]) {
+      addedFiles[filePath] = true;
+      if(isCss(filePath)) {
+        var file;
+        filePath = filePath.substr(0, filePath.length-3);
+        if(dependency.isAbsolute) {
+          file = await this.addFile(filePath, fs.readFileSync(filePath), true);
+        } else {
+          file = this.stc.resource.getFileByPath(filePath, this.file.path);
+        }
+        await this.invokePlugin(packCss, file);
+        return;
+      }
 
-    this.setContent(module.content);
+
+      await this.addFile(filePath, fs.readFileSync(filePath), true);
+      await this.invokeSelf(filePath);
+    }
   }
 
   /**
@@ -248,10 +303,3 @@ export default class JSPackPlugin extends Plugin {
   }
 }
 
-// require.e('chunkid', function(require) {
-//     var __require_array__ = [require('a')];
-//     (function(a){
-//       console.log(a);
-//     }).call(null, __require_array__);
-//   }
-// );

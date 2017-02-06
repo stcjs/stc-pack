@@ -1,9 +1,10 @@
 class ModuleManager {
   pathMap = {}
+  pathCount = 0
   modules = {}
-  counter = 0
   parentModules = {}
-  chunks = {}
+  chunkMap = {}
+  chunkCount = 0
 
   getModules() {
     return Object.keys(this.modules).map(id=>this.modules[id]);
@@ -13,22 +14,30 @@ class ModuleManager {
     if(match > 0) {
       return match;
     }
-    this.counter++;
-    this.pathMap[path] = this.counter;
-    return this.counter;
+    this.pathCount++;
+    this.pathMap[path] = this.pathCount;
+    return this.pathCount;
+  }
+
+  getChunkHash(uniqueId) {
+    var match = this.chunkMap[uniqueId];
+    if(match > 0) {
+      return match;
+    }
+    this.chunkCount++;
+    this.chunkMap[uniqueId] = this.chunkCount;
+    return this.chunkCount;
   }
 
   get(id) {
     return this.modules[id];
   }
 
-  add(serializedModule) {
+  add(module) {
 
     // module 里面包含的文件路径，引用的模块，引用的需要分块的模块
-    let module = JSON.parse(serializedModule);
     module.id = this.getPathHash(module.filePath);
 
-    // console.log('add module ' + module.id);
     // 构建 module 的 map， 方便按照路径查询
     this.modules[module.id] = module;
 
@@ -46,6 +55,9 @@ class ModuleManager {
       }
     });
 
+    // 构建 Chunk， chunk 会生成对于的 module 和 bundle-chunk
+    module.chunks.forEach(module=>this.add(module));
+
     return module;
   }
 
@@ -59,7 +71,7 @@ class ModuleManager {
 
     var parents = (this.parentModules[module.id] || []).filter(p=>idTrace.indexOf(p.id) === -1);
 
-    // 没有父亲，当前就是（其中）一个根模块
+    // 没有父亲，当前就是（其中）一个根模块 或者一个chunk
     if(parents.length === 0) {
       if(isFirst) {
         return result;
