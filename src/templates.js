@@ -1,5 +1,5 @@
 module.exports = {
-  pack(options) {
+  packEntry(options) {
     if(!options.output) {
       throw new Error('options.output is not configured!');
     }
@@ -75,22 +75,12 @@ module.exports = {
   __require__.c = installedModules;
   __require__.p = '${options.output.publicPath}';
 
-  var entryId;
-
   var stcpack = {
     add: function() {
       add.apply(undefined, arguments);
       return stcpack;
     },
-    entry: function(moduleId, module) {
-      add(moduleId, module);
-      entryId = moduleId;
-      return stcpack;
-    },
-    run: function() {
-      return stcpack;
-    },
-    chunkReady: function(chunkIds) {
+    bootChunk: function(chunkIds) {
       // flag all "chunkIds" as loaded and fire callback
       var moduleId, chunkId, i = 0, callbacks = [];
       for(;i < chunkIds.length; i++) {
@@ -104,7 +94,7 @@ module.exports = {
 
       return stcpack;
     },
-    bootstrap: function() {
+    bootEntry: function(entryId) {
       __require__(entryId);
     }
   };
@@ -113,22 +103,17 @@ module.exports = {
 })()`;
     return content;
   },
-  entry: function(module) {
-    if(module.chunkId !== undefined) {
-      return 'stcpackJsonp()';
-    }
-    return `\n.entry(${module.id}, function(exports, module, require) {\n${module.content}\n})`;
-  },
-  add: function(module) {
+  addModule: function(module) {
+    if(!module.content) return '';
     return `\n.add(${module.id}, function(exports, module, require) {\n${module.content}\n})`;
   },
-  run: function(content) {
-    return `\n.run((function(){\n${content}\n})()})`;
+  bootEntry: function(module) {
+    return `\n.bootEntry(${module.id});`;
   },
-  bootstrap: function(module) {
-    if(module.chunkId !== undefined) {
-      return `\n.chunkReady([${module.chunkId}])`;
-    }
-    return '\n.bootstrap();';
+  packChunk() {
+    return 'stcpackJsonp()';
+  },
+  bootChunk(module) {
+    return `\n.bootChunk([${module.chunkId}])`;
   }
 }

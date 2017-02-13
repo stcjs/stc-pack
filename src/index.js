@@ -114,7 +114,7 @@ export default class JSPackPlugin extends Plugin {
       `.e(${chunk.chunkId}, function(require) {
        var __require_array__ = [${chunk.dependencies.map(d=>`require(${idMap[d.filePath]})`).join(',')}];(`;
       var afterSnippet =
-      `\n).call(null, __require_array__);})`;
+      `\n).apply(null, __require_array__);})`;
       source.replace(chunk.calleeEnd, chunk.arg1Start, preSnippet);
       source.replace(chunk.arg1End, chunk.end, afterSnippet);
     }
@@ -211,11 +211,10 @@ export default class JSPackPlugin extends Plugin {
     // 构造引用树
     var module = ModuleManager.add(JSON.parse(serializedModule));
 
-    var modules = [module].concat(module.chunks);
-
     // 生成入口文件，或者 chunk 文件
-    modules.forEach(module=>BundleManager.addModule(module, this.options));
+    BundleManager.addModule(module, this.options);
 
+    var modules = [module].concat(module.chunks);
     // 处理不在 stc 引用文件范围内的文件
     await Promise.all(modules.map(m=>this.handleNonStcFiles(m)));
 
