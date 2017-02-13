@@ -18,17 +18,11 @@ export default class JSPackPlugin extends Plugin {
    * run
    */
   async run(){
-    var time = process.hrtime();
 
     let content = await this.getContent('utf8');
     let ast = await this.getAst(content);
     var module = await this.compile(ast, content);
-
-    var diff = process.hrtime(time);
-
-    module.runCost = Math.round((diff[0] * 1e9 + diff[1])/10000) / 100;
     var serializedModule = JSON.stringify(module);
-
     return {serializedModule};
   }
 
@@ -214,27 +208,21 @@ export default class JSPackPlugin extends Plugin {
       return this.fatal(err.message, err.line, err.col);
     }
 
+    // 构造引用树
     var module = ModuleManager.add(JSON.parse(serializedModule));
 
     var modules = [module].concat(module.chunks);
-    await Promise.all(modules.map(m=>this.mergeModule(m)));
+
+    // 生成入口文件，或者 chunk 文件
+    modules.forEach(module=>BundleManager.addModule(module, this.options));
+
+    // 处理不在 stc 引用文件范围内的文件
+    await Promise.all(modules.map(m=>this.handleNonStcFiles(m)));
 
     this.setContent(module.content);
   }
 
-  async mergeModule(module) {
-    // for(var module of modules) {
-    // 向上递归引用链，找到自己的根 （文件），根一定对于一个 bundle 对象，todo 除非是循环引用的某些情况
-    var parentIDs = ModuleManager.getRootParentIDs(module);
-
-    // 向下递归引用链，找到自己 module， 因为接下来需要找到自己 bundle 并合并
-    var childrenIDs = ModuleManager.getChildrenIDs(module);
-
-    // 这个方法就是把 module 归入到 bundle 之中，同时把关联的 bundle 向上合并。
-    // 注意： 这种方法是的顺序是不稳定， 因为是特别针对并行处理设计，什么时候处理了哪个文件并不知道。
-    BundleManager.addModule(module, parentIDs, childrenIDs, this.options);
-
-
+  async handleNonStcFiles(module) {
     await Promise.all(module.dependencies.map(d=>this.handleDependency(d)));
   }
 

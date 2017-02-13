@@ -1,13 +1,13 @@
 class ModuleManager {
   pathMap = {}
-  pathCount = 0
-  modules = {}
-  parentModules = {}
   chunkMap = {}
+  pathCount = 0
   chunkCount = 0
+  modules = []
+  parentModules = {}
 
   getModules() {
-    return Object.keys(this.modules).map(id=>this.modules[id]);
+    return this.modules;
   }
   getPathHash(path) {
     var match = this.pathMap[path];
@@ -16,6 +16,9 @@ class ModuleManager {
     }
     this.pathCount++;
     this.pathMap[path] = this.pathCount;
+    if(this.pathCount % 50 === 0) {
+      console.log('处理了' + this.pathCount + '个文件');
+    }
     return this.pathCount;
   }
 
@@ -36,21 +39,31 @@ class ModuleManager {
   add(module) {
 
     // module 里面包含的文件路径，引用的模块，引用的需要分块的模块
-    module.id = this.getPathHash(module.filePath);
-
+    const id = module.id = this.getPathHash(module.filePath);
+    module.children = [];
     // 构建 module 的 map， 方便按照路径查询
-    this.modules[module.id] = module;
+    this.modules[id] = module;
+
+    (this.parentModules[id] || []).forEach(parent=>{
+      if(parent.children.indexOf(id) === -1) {
+        parent.children.push(module);
+      }
+    });
 
     // 构建 module 的 被引用 map， 方便按照路径查询被谁引用
     module.dependencies.forEach(dependency=>{
       if(dependency.filePath) {
-        dependency.id = this.getPathHash(dependency.filePath);
-        var parents = this.parentModules[dependency.id];
+        var childId = dependency.id = this.getPathHash(dependency.filePath);
+        var parents = this.parentModules[childId];
         if(!parents) {
-          this.parentModules[dependency.id] = parents = [];
+          this.parentModules[childId] = parents = [];
         }
         if(parents.indexOf(module) === -1) {
           parents.push(module);
+        }
+        var child = this.modules[childId];
+        if(child && module.children.indexOf(childId) === -1) {
+          module.children.push(child);
         }
       }
     });

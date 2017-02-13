@@ -1,12 +1,11 @@
 
 
 // bundle 的接口，具体实现看 bundles 里面的对象
-class Bundle {
+export default class {
   constructor(module, options) {
     // bundle's rootModule is immutable, immutable, immutable.
-    this.rootModule = module;
+    this.module = module;
     this.options = options;
-    this.modules = {};
     this.onCreate(module);
   }
 
@@ -18,17 +17,4 @@ class Bundle {
   onAfter() {
     this.handleAfter();
   }
-
-  mergeBundle(bundle) {
-    if(bundle.rootModule.entryName) {
-      throw new Error(`Can not merge entry bundle ${bundle.rootModule.filePath} into bundle ${this.rootModule.filePath}`);
-    }
-    this.handleMergeBundle(bundle);
-  }
-
-  addModule(module) {
-    this.handleAddModule(module);
-  }
 }
-
-module.exports = Bundle;

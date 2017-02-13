@@ -114,6 +114,9 @@ module.exports = {
     return content;
   },
   entry: function(module) {
+    if(module.chunkId !== undefined) {
+      return 'stcpackJsonp()';
+    }
     return `\n.entry(${module.id}, function(exports, module, require) {\n${module.content}\n})`;
   },
   add: function(module) {
@@ -122,13 +125,10 @@ module.exports = {
   run: function(content) {
     return `\n.run((function(){\n${content}\n})()})`;
   },
-  chunk: function() {
-    return 'stcpackJsonp()';
-  },
-  chunkReady: function(module) {
-    return `\n.chunkReady([${module.chunkId}])`;
-  },
-  bootstrap: function() {
+  bootstrap: function(module) {
+    if(module.chunkId !== undefined) {
+      return `\n.chunkReady([${module.chunkId}])`;
+    }
     return '\n.bootstrap();';
   }
 }
